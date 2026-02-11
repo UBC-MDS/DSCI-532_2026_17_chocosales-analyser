@@ -4,10 +4,12 @@ These examples are provided to help you understand the expected depth and style 
 
 ## Section 1: Motivation and Purpose
 
-> **Our role:** Data scientist consultancy firm
-> **Target audience:** Health care administrators
+> **Our role:** Data scientist consultancy firm specializing in business analytics
+> **Target audience:** Sales Managers and business analysts especially in the confectionery industry
 >
-> Missed medical appointments cost the healthcare system a lot of money and affects the quality of care. If we could understand which factors lead to missed appointments it may be possible to reduce their frequency and use the saved resources to improve patient outcomes. To address this challenge, we propose building a data visualization app that allows health care administrators to visually explore a dataset of missed appointments to identify common factors. Our app will show the distribution of factors contributing to appointment show/no show and allow users to explore different aspects of this data by filtering and re-ordering on different variables in order to compare factors that contribute to absence.
+> Global chocolate sales operations are bringing us substaintial volumes of transactional data across countries, products and individual sales representatives. However, managers mostly rely on those static reports or aggregated summaries, which makes it hard to understand what affects the performance and identify the growth opportunities. Without interactive exploration tools, it could be challenging to determine which region, products or individuals contribute most to revenue growth.
+>
+> To address this challenge, our goal is to build an interactive data visualization dashoard that enables sales managers to explore global chocolate sales performance from 2022 to 2025. Our app allows users to check total sales and the trend, compare performance across countries and products, also evaluate individual sales representatives through filtering, ranking and other time-based trend analysis. Users can interactively explore the dataset via our dashboard, make more informed strategic decisions related to resource allocation, product focus, and regional expansion based on this supportive tool.
 
 ## Section 2: Description of the Data
 
@@ -22,6 +24,7 @@ These examples are provided to help you understand the expected depth and style 
 ## Section 3: Research Questions & Usage Scenarios
 
 ### Usage Scenario
+
 > Mary is a policy maker with the Canadian Ministry of Health and she wants to understand what factors lead to missed appointments in order to devise an intervention that improves attendance numbers. She wants to be able to [explore] a dataset in order to [compare] the effect of different variables on absenteeism and [identify] the most relevant variables around which to frame her intervention policy.
 >
 > When Mary logs on to our "Missed Appointments app", she will see an overview of all the available variables in her dataset, according to the number of people that did or did not show up to their medical appointment. She can filter out variables for head-to-head comparisons, and explore which variables are most important in determining whether a patient will show up to their appointment. When she does so, Mary may e.g. notice that "physical disability" appears to be a strong predictor missing appointments, and in fact patients with a physical disability also have the largest number of missed appointments.
@@ -29,6 +32,7 @@ These examples are provided to help you understand the expected depth and style 
 > Based on her findings from using our app, Mary hypothesizes that patients with a physical disability could be having a hard time finding transportation to their appointments, and decides she needs to conduct a follow-on study since transportation information is not captured in her current dataset.
 
 ### User Stories
+
 *You can choose to frame your detailed requirements as User Stories...*
 
 > **User Story 1:**
@@ -41,6 +45,7 @@ These examples are provided to help you understand the expected depth and style 
 > As a **policy maker**, I want to **visualize no-shows across days of the week** in order to **decide if specific days need scheduling interventions**.
 
 ### Jobs to Be Done
+
 *...or as Jobs to Be Done:*
 
 > **JTBD 1:**
