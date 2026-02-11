@@ -1,0 +1,12 @@
+name: chocosales-analyser
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - numpy
+  - matplotlib
+  - altair
+  - pandas
+  - shiny
+  - jupyterlab
+prefix: /Users/chikire/miniforge3/envs/chocosales-analyser
