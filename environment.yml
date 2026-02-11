@@ -9,4 +9,5 @@ dependencies:
 - pandas=3.0.0
 - shiny=1.4.0
 - jupyterlab=4.5.4
+- kagglehub
 prefix: /Users/chikire/miniforge3/envs/chocosales-analyser
