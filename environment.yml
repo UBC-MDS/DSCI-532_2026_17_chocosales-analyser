@@ -1,3 +1,4 @@
+# install with conda env create -f environment.yml
 name: chocosales-analyser
 channels:
 - conda-forge
