@@ -39,43 +39,44 @@ These examples are provided to help you understand the expected depth and style 
 
 ### Usage Scenario
 
-> Mary is a policy maker with the Canadian Ministry of Health and she wants to understand what factors lead to missed appointments in order to devise an intervention that improves attendance numbers. She wants to be able to [explore] a dataset in order to [compare] the effect of different variables on absenteeism and [identify] the most relevant variables around which to frame her intervention policy.
+> Jordan is a regional sales manager overseeing chocolate sales across multiple countries. Jordan is responsible for evaluating performance, identifying high-growth markets, and allocating sales resources effectively. However, reviewing static spreadsheets makes it difficult to quickly understand which segments are driving growth.
 >
-> When Mary logs on to our "Missed Appointments app", she will see an overview of all the available variables in her dataset, according to the number of people that did or did not show up to their medical appointment. She can filter out variables for head-to-head comparisons, and explore which variables are most important in determining whether a patient will show up to their appointment. When she does so, Mary may e.g. notice that "physical disability" appears to be a strong predictor missing appointments, and in fact patients with a physical disability also have the largest number of missed appointments.
+> When Jordan logs into our **ChocoSales Analyser** dashboard, they first see an overview of total sales and overall performance trends over time. Using interactive filters (Year, Country, Product), Jordan can explore specific segments of interest. For example, Jordan may filter the dashboard to view 2024 performance in Australia and observe that certain premium dark chocolate products contribute disproportionately to revenue.
 >
-> Based on her findings from using our app, Mary hypothesizes that patients with a physical disability could be having a hard time finding transportation to their appointments, and decides she needs to conduct a follow-on study since transportation information is not captured in her current dataset.
+> Jordan can then compare sales representatives to identify top performers and assess whether growth is concentrated among a few individuals or broadly distributed across the team. By exploring ranked product performance and year-over-year growth patterns, Jordan gains actionable insights to guide marketing focus, inventory decisions, and performance incentives.
+>
+> Based on findings from the dashboard, Jordan may decide to invest more resources in high-performing regions or provide additional support and training to underperforming areas.
 
 ### User Stories
 
-*You can choose to frame your detailed requirements as User Stories...*
-
-> **User Story 1:**
-> As a **policy maker**, I want to **filter appointments by specific demographics (e.g., age, gender)** in order to **determine if specific population groups are disproportionately missing appointments**.
+> **User Story 1:**  
+> As a **sales manager**, I want to **filter sales by year and country** in order to **compare regional performance and identify high-growth markets**.
 >
-> **User Story 2:**
-> As a **policy maker**, I want to **compare no-show rates between patients with and without specific conditions (e.g., hypertension)** in order to **identify if medical conditions are high-risk factors**.
+> **User Story 2:**  
+> As a **sales manager**, I want to **rank products by total sales or average transaction value** in order to **identify best-selling and most profitable chocolate products**.
 >
-> **User Story 3:**
-> As a **policy maker**, I want to **visualize no-shows across days of the week** in order to **decide if specific days need scheduling interventions**.
+> **User Story 3:**  
+> As a **business analyst**, I want to **compare sales performance across sales representatives** in order to **identify top contributors and potential training opportunities**.
 
 ### Jobs to Be Done
 
-*...or as Jobs to Be Done:*
-
 > **JTBD 1:**
-> **Situation:** When I am reviewing monthly attendance reports...
-> **Motivation:** ...I want to separate routine absences from systemic issues...
-> **Outcome:** ...so I can allocate intervention budget to the right patient groups.
+>
+> - **Situation:** When I am reviewing quarterly sales reports...
+> - **Motivation:** I want to understand which countries and products are driving overall revenue growth...
+> - **Outcome:** So I can prioritize markets and adjust strategic planning accordingly.
 >
 > **JTBD 2:**
-> **Situation:** When investigating a spike in no-shows...
-> **Motivation:** ...I want to see if specific physical disabilities correlate with absenteeism...
-> **Outcome:** ...so I can propose targeted transportation support services.
+>
+> - **Situation:** When I notice fluctuations in sales performance...
+> - **Motivation:** I want to explore trends over time and compare year-over-year growth...
+> - **Outcome:** So I can determine whether changes reflect seasonal patterns or structural shifts in demand.
 >
 > **JTBD 3:**
-> **Situation:** When planning clinic hours...
-> **Motivation:** ...I want to see if appointments on Mondays or Fridays are missed more often...
-> **Outcome:** ...so I can optimize the scheduling grid.
+>
+> - **Situation:** When evaluating team performance...
+> - **Motivation:** I want to compare sales representatives across regions and products...
+> - **Outcome:** So I can reward high performers and provide targeted support where needed.
 
 ## Section 4: Exploratory Data Analysis
 
