@@ -1,12 +1,12 @@
 name: chocosales-analyser
 channels:
-  - conda-forge
+- conda-forge
 dependencies:
-  - python
-  - numpy
-  - matplotlib
-  - altair
-  - pandas
-  - shiny
-  - jupyterlab
+- python=3.14.3
+- numpy=2.4.2
+- matplotlib=3.10.8
+- altair=6.0.0
+- pandas=3.0.0
+- shiny=1.4.0
+- jupyterlab=4.5.4
 prefix: /Users/chikire/miniforge3/envs/chocosales-analyser
