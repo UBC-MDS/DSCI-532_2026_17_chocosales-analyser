@@ -13,13 +13,27 @@ These examples are provided to help you understand the expected depth and style 
 
 ## Section 2: Description of the Data
 
-> We will be visualizing a dataset of approximately 300,000 missed patient appointments. Each appointment has 15 associated variables that describe the following characteristics, which we hypothesize could be helpful in determining why patient's miss their appointments:
+> We will be visualizing the **Chocolate Sales** dataset from Kaggle, which contains approximately 3,282 transaction records spanning the years 2022 to 2025. Each record represents a single chocolate sales transaction and includes several variables that describe the context and magnitude of the sale.
 >
-> - Patient demographics (`patient_id`, `gender`, `age`, etc)
-> - The health status of the patient (`general_health_status`, `existing_conditions` e.g. "Hypertension", "Physical disability")
-> - Information about the appointment itself (`appointment_id`, `appointment_date`)
+> The dataset includes the following key characteristics:
 >
-> Using this data we will also derive new variables, such as the time since the patient's last appointment (`days_since_last_appointment`) and which weekday the appointment was on (`appointment_weekday`), as it would be interesting to explore if these could be linked to the patient missing their appointment.
+> - **Sales Representative Information** (`Sales Person`)
+> The name of the salesperson responsible for the transaction, enabling performance comparison across individuals.
+> - **Geographic Information** (`Country`)
+> The country where the sale occurred, allowing for regional analysis and cross-country comparisons.
+> - **Product Information** (`Product`)
+> The name and type of chocolate product sold, which supports product-level performance evaluation.
+> - **Temporal Information** (`Date`)
+> The date of the transaction (DD/MM/YYYY format), enabling time-series trend analysis and year-over-year comparisons.
+> - **Sales Metrics**
+> `Amount`: Total sales value of the transaction (in USD).
+> `Boxes Shipped`: Number of boxes shipped as part of the transaction.
+> Using this data, we will derive additional variables to support exploratory analysis, such as:
+> - Year and Month (extracted from Date) for trend visualization.
+> - Year-over-Year Growth Metrics at aggregated levels.
+> - Aggregated Sales per Country/Product/Sales Person to enable ranking and comparison.
+> - Average Transaction Value to evaluate pricing and sales intensity.
+> These variables directly support decision-making related to revenue growth, sales performance monitoring, and product strategy optimization.
 
 ## Section 3: Research Questions & Usage Scenarios
 
