@@ -1,6 +1,4 @@
-# Proposal Examples
-
-These examples are provided to help you understand the expected depth and style of your proposal. You do not need to follow them exactly, but your sections should cover similar ground. Use the lecture materials to better motivate your proposal.
+# Proposal: Chocosales Analyser
 
 ## Section 1: Motivation and Purpose
 
@@ -39,42 +37,42 @@ These examples are provided to help you understand the expected depth and style 
 
 ### Usage Scenario
 
-> Jordan is a regional sales manager overseeing chocolate sales across multiple countries. Jordan is responsible for evaluating performance, identifying high-growth markets, and allocating sales resources effectively. However, reviewing static spreadsheets makes it difficult to quickly understand which segments are driving growth.
+> Jordan is a sales manager overseeing chocolate sales across multiple countries. Jordan is responsible for evaluating performance, identifying high-growth market trend, and allocating sales resources effectively. However, reviewing static spreadsheets makes it difficult to quickly understand which segments are driving growth.
 >
-> When Jordan logs into our **ChocoSales Analyser** dashboard, they first see an overview of total sales and overall performance trends over time. Using interactive filters (Year, Country, Product), Jordan can explore specific segments of interest. For example, Jordan may filter the dashboard to view 2024 performance in Australia and observe that certain premium dark chocolate products contribute disproportionately to revenue.
+> When Jordan logs into our **ChocoSales Analyser** dashboard, he first sees an overview of total sales and overall performance trends over time. Using interactive filters (Year, Country, Product), Jordan can explore specific segments of interest. For example, Jordan may filter the dashboard to view 2024 performance in Australia and observe that certain premium dark chocolate products contribute disproportionately to revenue.
 >
 > Jordan can then compare sales representatives to identify top performers and assess whether growth is concentrated among a few individuals or broadly distributed across the team. By exploring ranked product performance and year-over-year growth patterns, Jordan gains actionable insights to guide marketing focus, inventory decisions, and performance incentives.
 >
-> Based on findings from the dashboard, Jordan may decide to invest more resources in high-performing regions or provide additional support and training to underperforming areas.
+> Based on findings from the dashboard, Jordan may decide to invest more resources in high-performing countries or provide additional support and training to underperforming areas.
 
 ### User Stories
 
 > **User Story 1:**  
-> As a **sales manager**, I want to **filter sales by year and country** in order to **compare regional performance and identify high-growth markets**.
+> As a **sales manager**, I want to **filter sales by year and country** in order to **compare regional performance and identify high-growth market trend overtime**.
 >
 > **User Story 2:**  
 > As a **sales manager**, I want to **rank products by total sales or average transaction value** in order to **identify best-selling and most profitable chocolate products**.
 >
 > **User Story 3:**  
-> As a **business analyst**, I want to **compare sales performance across sales representatives** in order to **identify top contributors and potential training opportunities**.
+> As a **sales manager**, I want to **compare sales performance across sales representatives** in order to **identify top contributors and potential training opportunities**.
 
 ### Jobs to Be Done
 
 > **JTBD 1:**
 >
-> - **Situation:** When I am reviewing quarterly sales reports...
-> - **Motivation:** I want to understand which countries and products are driving overall revenue growth...
-> - **Outcome:** So I can prioritize markets and adjust strategic planning accordingly.
+> - **Situation:** When I am reviewing annual sales reports across multiple countries...
+> - **Motivation:** I want to explore the sales trend by year and country to understand how regional performance changes over time...
+> - **Outcome:** So that I can capture high-growth market trend and make informative decisions about regional investment and strategic focus.
 >
 > **JTBD 2:**
 >
-> - **Situation:** When I notice fluctuations in sales performance...
-> - **Motivation:** I want to explore trends over time and compare year-over-year growth...
-> - **Outcome:** So I can determine whether changes reflect seasonal patterns or structural shifts in demand.
+> - **Situation:** When I am evaluating the overall product performance...
+> - **Motivation:** I want to explore the ranking of products based on total sales or average transaction value to assess which product generates the most profitability...
+> - **Outcome:** So I can prioritize high-performing products in marketing and promotional strategies.
 >
 > **JTBD 3:**
 >
-> - **Situation:** When evaluating team performance...
+> - **Situation:** When evaluating team performance across sales representatives...
 > - **Motivation:** I want to compare sales representatives across regions and products...
 > - **Outcome:** So I can reward high performers and provide targeted support where needed.
 
