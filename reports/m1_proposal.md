@@ -67,11 +67,13 @@
 
 ## Section 4: Exploratory Data Analysis
 
-> *To address User Story 1 (Demographics), we analyzed the no-show rate across different age groups.*
+> *To address JTBD 1 (comparing country-level trends and identifying faster vs slower growing markets), we analyzed sales Amount ($) over time by country.*
 >
-> **Analysis:** The bar chart in `notebooks/eda_analysis.ipynb` reveals that patients in the 20-30 age bracket have a 15% higher no-show rate than the average.
+> **Notebook:** [`notebooks/eda_analysis.ipynb`](../notebooks/eda_analysis.ipynb)
 >
-> **Reflection:** This finding supports the need for a targeted filter in the dashboard. By allowing the policy maker to isolate "Young Adults," they can investigate if this high trend holds true across different clinic locations, helping them decide if age-specific text message reminders are needed.
+> **Analysis:** In `notebooks/eda_analysis.ipynb`, the quarterly line chart shows that country sales fluctuate quarter-to-quarter, which provides context on how each market changes over time. To summarize growth more clearly, the YoY growth bar chart (Jan–Aug 2024 vs Jan–Aug 2023) ranks markets by percent change; all markets grew in this window, with India growing the most (about 5.7%) and New Zealand the least (about 4.2%).
+>
+> **Reflection:** This supports our dashboard design: users need a time trend view (with a country filter) to explore changes over time, plus a growth comparison view (YoY % change) to quickly prioritize high-growth markets for regional investment and strategic focus.
 
 ## Section 5: App Sketch & Description
 
