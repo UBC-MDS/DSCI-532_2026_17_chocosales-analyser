@@ -45,24 +45,13 @@
 >
 > Based on findings from the dashboard, Jordan may decide to invest more resources in high-performing countries or provide additional support and training to underperforming areas.
 
-### User Stories
-
-> **User Story 1:**  
-> As a **sales manager**, I want to **filter sales by year and country** in order to **compare regional performance and identify high-growth market trend overtime**.
->
-> **User Story 2:**  
-> As a **sales manager**, I want to **rank products by total sales or average transaction value** in order to **identify best-selling and most profitable chocolate products**.
->
-> **User Story 3:**  
-> As a **sales manager**, I want to **compare sales performance across sales representatives** in order to **identify top contributors and potential training opportunities**.
-
 ### Jobs to Be Done
 
 > **JTBD 1:**
 >
-> - **Situation:** When I am reviewing annual sales reports across multiple countries...
-> - **Motivation:** I want to explore the sales trend by year and country to understand how regional performance changes over time...
-> - **Outcome:** So that I can capture high-growth market trend and make informative decisions about regional investment and strategic focus.
+> - **Situation:** When I’m reviewing sales performance across multiple countries over time...
+> - **Motivation:** I want to compare country-level sales trends and summarize year-over-year growth to understand which markets are improving faster or slower...
+> - **Outcome:** So that I can prioritize high-growth markets and make informed decisions about regional investment and strategic focus.
 >
 > **JTBD 2:**
 >
