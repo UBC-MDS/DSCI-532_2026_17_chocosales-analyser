@@ -1,6 +1,4 @@
-# Proposal Examples
-
-These examples are provided to help you understand the expected depth and style of your proposal. You do not need to follow them exactly, but your sections should cover similar ground. Use the lecture materials to better motivate your proposal.
+# Proposal: Chocosales Analyser
 
 ## Section 1: Motivation and Purpose
 
@@ -13,55 +11,70 @@ These examples are provided to help you understand the expected depth and style 
 
 ## Section 2: Description of the Data
 
-> We will be visualizing a dataset of approximately 300,000 missed patient appointments. Each appointment has 15 associated variables that describe the following characteristics, which we hypothesize could be helpful in determining why patient's miss their appointments:
+> We will be visualizing the **Chocolate Sales** dataset from Kaggle, which contains approximately 3,282 transaction records spanning the years 2022 to 2025. Each record represents a single chocolate sales transaction and includes several variables that describe the context and magnitude of the sale.
 >
-> - Patient demographics (`patient_id`, `gender`, `age`, etc)
-> - The health status of the patient (`general_health_status`, `existing_conditions` e.g. "Hypertension", "Physical disability")
-> - Information about the appointment itself (`appointment_id`, `appointment_date`)
+> The dataset includes the following key characteristics:
 >
-> Using this data we will also derive new variables, such as the time since the patient's last appointment (`days_since_last_appointment`) and which weekday the appointment was on (`appointment_weekday`), as it would be interesting to explore if these could be linked to the patient missing their appointment.
+> - **Sales Representative Information** (`Sales Person`)
+> The name of the salesperson responsible for the transaction, enabling performance comparison across individuals.
+> - **Geographic Information** (`Country`)
+> The country where the sale occurred, allowing for regional analysis and cross-country comparisons.
+> - **Product Information** (`Product`)
+> The name and type of chocolate product sold, which supports product-level performance evaluation.
+> - **Temporal Information** (`Date`)
+> The date of the transaction (DD/MM/YYYY format), enabling time-series trend analysis and year-over-year comparisons.
+> - **Sales Metrics**
+> `Amount`: Total sales value of the transaction (in USD).
+> `Boxes Shipped`: Number of boxes shipped as part of the transaction.
+> Using this data, we will derive additional variables to support exploratory analysis, such as:
+> - Year and Month (extracted from Date) for trend visualization.
+> - Year-over-Year Growth Metrics at aggregated levels.
+> - Aggregated Sales per Country/Product/Sales Person to enable ranking and comparison.
+> - Average Transaction Value to evaluate pricing and sales intensity.
+> These variables directly support decision-making related to revenue growth, sales performance monitoring, and product strategy optimization.
 
 ## Section 3: Research Questions & Usage Scenarios
 
 ### Usage Scenario
 
-> Mary is a policy maker with the Canadian Ministry of Health and she wants to understand what factors lead to missed appointments in order to devise an intervention that improves attendance numbers. She wants to be able to [explore] a dataset in order to [compare] the effect of different variables on absenteeism and [identify] the most relevant variables around which to frame her intervention policy.
+> Jordan is a sales manager overseeing chocolate sales across multiple countries. Jordan is responsible for evaluating performance, identifying high-growth market trend, and allocating sales resources effectively. However, reviewing static spreadsheets makes it difficult to quickly understand which segments are driving growth.
 >
-> When Mary logs on to our "Missed Appointments app", she will see an overview of all the available variables in her dataset, according to the number of people that did or did not show up to their medical appointment. She can filter out variables for head-to-head comparisons, and explore which variables are most important in determining whether a patient will show up to their appointment. When she does so, Mary may e.g. notice that "physical disability" appears to be a strong predictor missing appointments, and in fact patients with a physical disability also have the largest number of missed appointments.
+> When Jordan logs into our **ChocoSales Analyser** dashboard, he first sees an overview of total sales and overall performance trends over time. Using interactive filters (Year, Country, Product), Jordan can explore specific segments of interest. For example, Jordan may filter the dashboard to view 2024 performance in Australia and observe that certain premium dark chocolate products contribute disproportionately to revenue.
 >
-> Based on her findings from using our app, Mary hypothesizes that patients with a physical disability could be having a hard time finding transportation to their appointments, and decides she needs to conduct a follow-on study since transportation information is not captured in her current dataset.
+> Jordan can then compare sales representatives to identify top performers and assess whether growth is concentrated among a few individuals or broadly distributed across the team. By exploring ranked product performance and year-over-year growth patterns, Jordan gains actionable insights to guide marketing focus, inventory decisions, and performance incentives.
+>
+> Based on findings from the dashboard, Jordan may decide to invest more resources in high-performing countries or provide additional support and training to underperforming areas.
 
 ### User Stories
 
-*You can choose to frame your detailed requirements as User Stories...*
-
-> **User Story 1:**
-> As a **policy maker**, I want to **filter appointments by specific demographics (e.g., age, gender)** in order to **determine if specific population groups are disproportionately missing appointments**.
+> **User Story 1:**  
+> As a **sales manager**, I want to **filter sales by year and country** in order to **compare regional performance and identify high-growth market trend overtime**.
 >
-> **User Story 2:**
-> As a **policy maker**, I want to **compare no-show rates between patients with and without specific conditions (e.g., hypertension)** in order to **identify if medical conditions are high-risk factors**.
+> **User Story 2:**  
+> As a **sales manager**, I want to **rank products by total sales or average transaction value** in order to **identify best-selling and most profitable chocolate products**.
 >
-> **User Story 3:**
-> As a **policy maker**, I want to **visualize no-shows across days of the week** in order to **decide if specific days need scheduling interventions**.
+> **User Story 3:**  
+> As a **sales manager**, I want to **compare sales performance across sales representatives** in order to **identify top contributors and potential training opportunities**.
 
 ### Jobs to Be Done
 
-*...or as Jobs to Be Done:*
-
 > **JTBD 1:**
-> **Situation:** When I am reviewing monthly attendance reports...
-> **Motivation:** ...I want to separate routine absences from systemic issues...
-> **Outcome:** ...so I can allocate intervention budget to the right patient groups.
+>
+> - **Situation:** When I am reviewing annual sales reports across multiple countries...
+> - **Motivation:** I want to explore the sales trend by year and country to understand how regional performance changes over time...
+> - **Outcome:** So that I can capture high-growth market trend and make informative decisions about regional investment and strategic focus.
 >
 > **JTBD 2:**
-> **Situation:** When investigating a spike in no-shows...
-> **Motivation:** ...I want to see if specific physical disabilities correlate with absenteeism...
-> **Outcome:** ...so I can propose targeted transportation support services.
+>
+> - **Situation:** When I am evaluating the overall product performance...
+> - **Motivation:** I want to explore the ranking of products based on total sales or average transaction value to assess which product generates the most profitability...
+> - **Outcome:** So I can prioritize high-performing products in marketing and promotional strategies.
 >
 > **JTBD 3:**
-> **Situation:** When planning clinic hours...
-> **Motivation:** ...I want to see if appointments on Mondays or Fridays are missed more often...
-> **Outcome:** ...so I can optimize the scheduling grid.
+>
+> - **Situation:** When evaluating team performance across sales representatives...
+> - **Motivation:** I want to compare sales representatives across regions and products...
+> - **Outcome:** So I can reward high performers and provide targeted support where needed.
 
 ## Section 4: Exploratory Data Analysis
 
