@@ -1,4 +1,3 @@
-# install with conda env create -f environment.yml
 name: chocosales-analyser
 channels:
 - conda-forge
@@ -10,5 +9,5 @@ dependencies:
 - pandas=3.0.0
 - shiny=1.4.0
 - jupyterlab=4.5.4
-- kagglehub
-prefix: /Users/chikire/miniforge3/envs/chocosales-analyser
+- kagglehub=1.0.0
+- plotly=6.5.2
