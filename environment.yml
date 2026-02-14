@@ -11,4 +11,3 @@ dependencies:
 - jupyterlab=4.5.4
 - kagglehub=1.0.0
 - plotly=6.5.2
-prefix: /Users/chikire/miniforge3/envs/chocosales-analyser
