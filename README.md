@@ -50,6 +50,10 @@ shiny run --reload src/app.py
 
 After running this command, open your browser and nagivate to: http://127.0.0.1:8000
 
+## Contributing
+
+We welcome contributions, please take a look at our [Contributing Guideline](https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser/blob/readme-eda/CONTRIBUTING.md) for further details on how to contribute to this project, and also review our [Code of Conduct](https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser/blob/readme-eda/CODE_OF_CONDUCT.md).
+
 ## Contributors
 
 - Chikire Aku-Ibe
