@@ -51,5 +51,5 @@ shiny run --reload src/app.py
 
 ## Copyright
 
-Copyright © 2026 Chikire Aku-Ibe, Samrawit Mezgebo Tsegay, Shihan Xu
+Copyright © 2026 Chikire Aku-Ibe, Samrawit Mezgebo Tsegay, Shihan Xu  
 Distributed under the MIT [License](https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser/blob/readme-eda/LICENSE).
