@@ -26,7 +26,7 @@ with ui.sidebar(title="Filters", open="desktop"):
     )
     ui.input_select(
         "product",
-        "Product",
+        "Product Category",
         choices=["All"],
         selected="All"
     )
@@ -51,3 +51,14 @@ with ui.layout_columns(col_widths=[3, 3, 3, 3]):
     with ui.card():
         ui.card_header("Total Transaction(Count)")
         "XXX"
+        
+#Row 1 of Charts 
+with ui.layout_columns(col_widths=[6, 6]):
+    with ui.card():
+        ui.card_header("Sales Trend by Country Over Time")
+        "Line chart showing sales over time, color-coded by country"
+    
+    with ui.card():
+        ui.card_header("Countries and Regional Contribution Breakdown")
+        "map showing sales by country"
+    
