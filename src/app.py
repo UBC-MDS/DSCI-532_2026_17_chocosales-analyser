@@ -66,3 +66,12 @@ with ui.layout_columns(col_widths=[4,4,4]):
         ui.card_header("Countries and Regional Contribution Breakdown")
         "map showing sales by country"
 
+# Row 2 of Chart and table
+with ui.layout_columns(col_widths=[6,6]):
+    with ui.card():
+        ui.card_header("Countries Sales Contribution")
+        "Interactive table with transaction details (Country, Top Sales Representative, Total Sales(USD), Percentage Contribution(%))"
+    
+    with ui.card():
+        ui.card_header("Top 5 Products")
+        "Horizontal bar chart of top-performing products by sales revenue"
