@@ -32,7 +32,12 @@ with ui.sidebar(title="Filters", open="desktop"):
     )
 
 # Main content area
-ui.h2("ChocoSales Analyser Dashboard")
+with ui.layout_columns(col_widths=[8, 4]):
+    ui.h2("Chocolate Sales Analyser Dashboard")
+    ui.tags.div(
+        "Last updated: February 14, 2026",
+        style="font-size: 0.85rem; text-align: right; padding-top: 0.4rem;"
+    )
 
 # Add statistics cards row
 with ui.layout_columns(col_widths=[3, 3, 3, 3]):
