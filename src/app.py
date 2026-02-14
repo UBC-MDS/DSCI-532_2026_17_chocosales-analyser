@@ -34,3 +34,20 @@ with ui.sidebar(title="Filters", open="desktop"):
 # Main content area
 ui.h2("ChocoSales Analyser Dashboard")
 
+# Add statistics cards row
+with ui.layout_columns(col_widths=[3, 3, 3, 3]):
+    with ui.card():
+        ui.card_header("Total Sales Revenue(USD)")
+        "XXX"
+    
+    with ui.card():
+        ui.card_header("Year Over Year Growth Rate(%)")
+        "X.X"
+    
+    with ui.card():
+        ui.card_header("Average Sales Per Transaction(USD)")
+        "XXX"
+    
+    with ui.card():
+        ui.card_header("Total Transaction(Count)")
+        "XXX"
