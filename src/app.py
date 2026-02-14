@@ -30,3 +30,7 @@ with ui.sidebar(title="Filters", open="desktop"):
         choices=["All"],
         selected="All"
     )
+
+# Main content area
+ui.h2("ChocoSales Analyser Dashboard")
+
