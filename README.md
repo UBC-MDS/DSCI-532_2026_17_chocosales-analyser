@@ -6,7 +6,12 @@ Through filtering, ranking, and visual comparison, the app supports data-driven 
 
 ## Get Started
 
-Clone the repo and follow the steps below to run the dashboard locally.
+Clone the repo and follow the steps below to run the dashboard locally:
+
+```bash
+git clone https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser.git
+cd DSCI-532_2026_17_chocosales-analyser/
+```
 
 ### Create the Conda Environment
 
