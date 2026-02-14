@@ -47,6 +47,7 @@ Then open `notebooks/eda_analysis.ipynb` and run all cells to reproduce the expl
 ```bash
 shiny run --reload src/app.py
 ```
+
 After running this command, open your browser and nagivate to: http://127.0.0.1:8000
 
 ## Contributors
