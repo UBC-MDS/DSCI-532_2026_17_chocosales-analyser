@@ -53,7 +53,11 @@ with ui.layout_columns(col_widths=[3, 3, 3, 3]):
         "XXX"
         
 #Row 1 of Charts 
-with ui.layout_columns(col_widths=[6, 6]):
+with ui.layout_columns(col_widths=[4,4,4]):
+    with ui.card():
+        ui.card_header("Year-over-Year Growth By Country")
+        "Bar chart comparing YoY % change by country"
+
     with ui.card():
         ui.card_header("Sales Trend by Country Over Time")
         "Line chart showing sales over time, color-coded by country"
@@ -61,4 +65,4 @@ with ui.layout_columns(col_widths=[6, 6]):
     with ui.card():
         ui.card_header("Countries and Regional Contribution Breakdown")
         "map showing sales by country"
-    
+
