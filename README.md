@@ -19,11 +19,23 @@ conda activate chocosales-analyser
 
 ### Download the Dataset
 
+For reproducibility, run the script in the terminal using:
+
 ```bash
 python src/download_data.py
 ```
 
 This will save the dataset to: `data/raw/`.
+
+### Run the EDA Notebook (Milestone 1)
+
+To explore the data cleaning steps and static visualizations created for the proposal, run:
+
+```bash
+jupyter lab
+```
+
+Then open `notebooks/eda_analysis.ipynb` and run all cells to reproduce the exploratory data analysis and static plots supporting our dashboard user story.
 
 ### Run the Dashboard Locally
 
