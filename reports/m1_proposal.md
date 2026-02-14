@@ -45,24 +45,13 @@
 >
 > Based on findings from the dashboard, Jordan may decide to invest more resources in high-performing countries or provide additional support and training to underperforming areas.
 
-### User Stories
-
-> **User Story 1:**  
-> As a **sales manager**, I want to **filter sales by year and country** in order to **compare regional performance and identify high-growth market trend overtime**.
->
-> **User Story 2:**  
-> As a **sales manager**, I want to **rank products by total sales or average transaction value** in order to **identify best-selling and most profitable chocolate products**.
->
-> **User Story 3:**  
-> As a **sales manager**, I want to **compare sales performance across sales representatives** in order to **identify top contributors and potential training opportunities**.
-
 ### Jobs to Be Done
 
 > **JTBD 1:**
 >
-> - **Situation:** When I am reviewing annual sales reports across multiple countries...
-> - **Motivation:** I want to explore the sales trend by year and country to understand how regional performance changes over time...
-> - **Outcome:** So that I can capture high-growth market trend and make informative decisions about regional investment and strategic focus.
+> - **Situation:** When I'm reviewing sales performance across multiple countries over time...
+> - **Motivation:** I want to compare country-level sales trends and summarize year-over-year growth to understand which markets are improving faster or slower...
+> - **Outcome:** So that I can prioritize high-growth markets and make informed decisions about regional investment and strategic focus.
 >
 > **JTBD 2:**
 >
@@ -78,14 +67,18 @@
 
 ## Section 4: Exploratory Data Analysis
 
-> *To address User Story 1 (Demographics), we analyzed the no-show rate across different age groups.*
+> *To address JTBD 1 (comparing country-level trends and identifying faster vs slower growing markets), we analyzed sales Amount ($) over time by country.*
 >
-> **Analysis:** The bar chart in `notebooks/eda_analysis.ipynb` reveals that patients in the 20-30 age bracket have a 15% higher no-show rate than the average.
+> **Notebook:** [`notebooks/eda_analysis.ipynb`](../notebooks/eda_analysis.ipynb)
 >
-> **Reflection:** This finding supports the need for a targeted filter in the dashboard. By allowing the policy maker to isolate "Young Adults," they can investigate if this high trend holds true across different clinic locations, helping them decide if age-specific text message reminders are needed.
+> **Analysis:** In `notebooks/eda_analysis.ipynb`, the quarterly line chart shows that country sales fluctuate quarter-to-quarter, which provides context on how each market changes over time. To summarize growth more clearly, the YoY growth bar chart (Jan–Aug 2024 vs Jan–Aug 2023) ranks markets by percent change; all markets grew in this window, with India growing the most (about 5.7%) and New Zealand the least (about 4.2%).
+>
+> **Reflection:** This supports our dashboard design: users need a time trend view (with a country filter) to explore changes over time, plus a growth comparison view (YoY % change) to quickly prioritize high-growth markets for regional investment and strategic focus.
 
 ## Section 5: App Sketch & Description
 
-![Dashboard](sketch.png "App Sketch")
+![Dashboard](../img/sketch.png "App Sketch")
 
-> The app contains a landing page that shows the distribution (depending on data type, bar chart, density chart etc) of dataset factors (hypertension, physical disabilities etc.) colored coded according to whether patients showed up or didn't show up for an appointment. From a dropdown list, users can filter out variables from the distribution display, by patient demographics (i.e. only show female patients), by appointment data (i.e. if SMS was sent), and finally by the date range of appointments. A different dropdown menu will allow users to re-order variables according to the probability of patients being a no-show or in alphabetical order to co-morbidities. Users can compare the distribution of co-morbidities by scrolling down through the app interface.
+> The app contains a landing page that shows the distributions which convey sales in various countries in a Year over Year (YoY) change comparison, a trend chart coloured by the different countries and top five products in top ranking country by default. There are also statistic tiles, a table and a map which provides more details about the different segments driving growth. From the dropdown filters on the left, the user can select the start year, end year, country and product of interest. There is also an option to collapse the sidebar to allow the user to view the key metrics in full screen. These filters can also be reset to return the defualt view. 
+
+> Furthmore, hovering over the charts displays detailed tooltips with the exact values. The legend items can also be clicked to toggle the visibility of specific countries/products. Our colour palette for categorical comaprison is color-blind friendlyand users can view the dashboard efficiently in a Z-motion. 
