@@ -1,0 +1,6 @@
+shiny==1.4.0
+pandas==3.0.0
+numpy==2.4.2
+plotly==6.5.2
+altair==6.0.0
+matplotlib==3.10.8
