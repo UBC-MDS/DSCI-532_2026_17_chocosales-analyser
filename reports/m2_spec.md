@@ -48,6 +48,10 @@ flowchart TD
   EY[/input_end_year/] --> FS
   C[/input_country/] --> FS
   P[/input_product/] --> FS
+  SY --> AFS([out_active_filter_state])
+  EY --> AFS
+  C --> AFS
+  P --> AFS
 
   %% Optional enhancement: reset
   R[/input_reset_filters/] --> RF[reset_filters]
@@ -62,6 +66,7 @@ flowchart TD
   FS --> ST([out_sales_trend_plot])
   FS --> MAP([out_country_map])
   FS --> TBL([out_country_contrib_table])
+  FS --> FTR([out_app_footer])
 
   %% KPI text outputs consuming kpi_metrics
   KM --> TR([out_total_revenue])
@@ -89,7 +94,8 @@ flowchart TD
 - **Consumed by outputs / downstream calcs:**
 
 1. **Direct outputs:** `out_sales_trend_plot`, `out_country_map`, `out_country_contrib_table`
-2. **Downstream calcs:** `kpi_metrics`, `yoy_by_country`, `top5_products_data`
+2. **Additional output:** `out_app_footer`
+3. **Downstream calcs:** `kpi_metrics`, `yoy_by_country`, `top5_products_data`
 
 ### `kpi_metrics` (@reactive.calc)
 
@@ -139,3 +145,19 @@ Also, returns a small DataFrame with just one row containing all KPI values so t
 
 1. Resets UI inputs back to default values (e.g., start year = min year, end year = max year, country/product = "All").
 2. This triggers updates to `filtered_sales` and all downstream outputs via normal reactivity.
+
+### `out_active_filter_state` (@render.text)
+
+- **Depends on:** `input_start_year`, `input_end_year`, `input_country`, `input_product`
+- **What it does:**
+
+1. Renders a short text summary of currently selected filters.
+2. Makes active filter state visible to users at a glance.
+
+### `out_app_footer` (@render.ui)
+
+- **Depends on:** `filtered_sales`
+- **What it does:**
+
+1. Renders footer metadata (app description, authors, repo link, last updated).
+2. Can include context such as filtered row count/date range from `filtered_sales`.
