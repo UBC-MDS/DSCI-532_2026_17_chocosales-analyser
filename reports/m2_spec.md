@@ -37,9 +37,102 @@
 | out_yoy_country_plot | Output | @render.plot | yoy_by_country | #1 |
 | out_top5_products_plot | Output | @render.plot | top5_products_data | #2 |
 
-
 ## 2.3 Reactivity Diagram
-_TBD_
+
+```mermaid
+flowchart TD
+  %% Inputs
+  SY[/input_start_year/] --> FS{{filtered_sales}}
+  EY[/input_end_year/] --> FS
+  C[/input_country/] --> FS
+  P[/input_product/] --> FS
+
+  %% Optional enhancement: reset
+  R[/input_reset_filters/] --> RF[reset_filters<br/>@reactive.effect]
+
+  %% Reactive calcs derived from filtered_sales
+  FS --> KM{{kpi_metrics}}
+  FS --> YY{{yoy_by_country}}
+  FS --> TP{{top5_products_data}}
+
+  %% Outputs consuming filtered_sales directly
+  FS --> ST([out_sales_trend_plot])
+  FS --> MAP([out_country_map])
+  FS --> TBL([out_country_contrib_table])
+
+  %% KPI text outputs consuming kpi_metrics
+  KM --> TR([out_total_revenue])
+  KM --> AV([out_avg_sales_per_tran])
+  KM --> GR([out_yoy_growth_rate])
+  KM --> TX([out_total_transactions])
+
+  %% Outputs consuming yoy/top5 calcs
+  YY --> YYPL([out_yoy_country_plot])
+  TP --> TPPL([out_top5_products_plot])
+```
 
 ## 2.4 Calculation Details
-_TBD_
+
+### `filtered_sales` (@reactuve.calc)
+
+- **Depends on:** `input_start_year`, `input_end_year`, `input_country`, `input_product`
+- **What it does (transformation):**
+
+1. Loads the cleaned sales dataset (e.g., from `data/raw/chocolate-sales.csv`).  
+2. Filters rows to the selected year range (`start_year` to `end_year`).  
+3. Applies optional filters for `country` and `product` (e.g., "All" = no filter).  
+4. Returns the filtered DataFrame used across the app as the single source of truth.
+
+- **Consumed by outputs / downstream calcs:**
+
+1. **Direct outputs:** `out_sales_trend_plot`, `out_country_map`, `out_country_contrib_table`
+2. **Downstream calcs:** `kpi_metrics`, `yoy_by_country`, `top5_products_data`
+
+### `kpi_metrics` (@reactive.calc)
+
+- **Depends on:** `filtered_sales`
+- **What it does (transformation):**
+Computes summary KPIs from the filtered dataset, such as:
+
+1. **Total revenue** = sum of `sales`
+2. **Average sales per transaction** = mean of `sales`
+3. **Total transactions** = number of rows (or count of transactions)
+4. **YoY growth rate:** compares current year vs previous year within the filtered data.
+
+Also, returns a small DataFrame with just one row containing all KPI values so they are computed once and reused.
+
+- **Consumed by outputs:** `out_total_revenue`, `out_avg_sales_per_tran`, `out_yoy_growth_rate`, `out_total_transactions`
+
+### `yoy_by_country` (@reactive.calc)
+
+- **Depends on:** `filtered_sales`
+- **What it does (transformation):**
+
+1. Aggregates sales by **country** and **year** (or year-month if needed).
+2. Computes year-over-year change metrics per country (e.g., `pct_change` across years).
+3. Returns a DataFrame suitable for plotting YoY comparisons.
+
+- **Consumed by outputs:** `out_yoy_country_plot`
+
+### `top5_products_data` (@reactive.calc)
+
+- **Depends on:** `filtered_sales`
+
+- **What it does (transformation):**
+
+1. Aggregates sales by **product** (or product category if needed).
+2. Computes ranking metrics (e.g., total sales, average transaction value).
+3. Selects **Top 5** products based on the chosen ranking rule (for this milestone can fix to "total sales" and document that; in later milestones could add an input to switch ranking).
+4. Returns the ranked Top 5 table for plotting.
+
+- **Consumed by outputs:** `out_top5_products_plot`
+
+### `reset_filters` (@reactive.effect, for optional enhancement)
+
+(not a @reactive.calc, but included here for completeness because it affects the reactive system)
+
+- **Depends on:** `input_reset_filters` via `@reactive.event(input_reset_filters)`
+- **What it does:**
+
+1. Resets UI inputs back to default values (e.g., start year = min year, end year = max year, country/product = "All").
+2. This triggers updates to `filtered_sales` and all downstream outputs via normal reactivity.
