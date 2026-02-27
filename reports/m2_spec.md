@@ -81,7 +81,7 @@ flowchart TD
 
 ## 2.4 Calculation Details
 
-### `filtered_sales` (@reactuve.calc)
+### `filtered_sales` (@reactive.calc)
 
 - **Depends on:** `input_start_year`, `input_end_year`, `input_country`, `input_product`
 - **What it does (transformation):**
