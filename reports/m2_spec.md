@@ -48,7 +48,8 @@ flowchart TD
   P[/input_product/] --> FS
 
   %% Optional enhancement: reset
-  R[/input_reset_filters/] --> RF[reset_filters (@reactive.effect)]
+  R[/input_reset_filters/] --> RF[reset_filters]
+  RF --> RFT[[reactive.effect]]
 
   %% Reactive calcs derived from filtered_sales
   FS --> KM{{kpi_metrics}}
