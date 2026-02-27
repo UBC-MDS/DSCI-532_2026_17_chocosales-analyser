@@ -32,15 +32,19 @@ with ui.sidebar(title="Filters", open="desktop"):
     )
 
 # Main content area
-with ui.layout_columns(col_widths=[8, 4]):
-    ui.h2("Chocolate Sales Analyser Dashboard")
+with ui.layout_columns(col_widths=[8, 4], class_="mb-0", fill=False):
+    ui.h2("Chocolate Sales Analyser Dashboard", class_="mb-0")
     ui.tags.div(
         "Last updated: February 14, 2026",
-        style="font-size: 0.85rem; text-align: right; padding-top: 0.4rem;"
+        class_="text-end small pt-0"
     )
 
 # Add statistics cards row
-with ui.layout_columns(col_widths=[3, 3, 3, 3]):
+with ui.layout_columns(
+    col_widths=[3, 3, 3, 3],
+    class_="mt-0 pt-0",
+    fill=False,
+):
     with ui.card():
         ui.card_header("Total Sales Revenue(USD)")
         "XXX"
