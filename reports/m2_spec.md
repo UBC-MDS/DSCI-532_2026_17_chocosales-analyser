@@ -14,7 +14,20 @@
 | 4 | When I’ve changed multiple filters, I want a reset button, so I can quickly return to the default view. | ⏳ Pending M2 (Optional) | Optional enhancement |
 
 ## 2.2 Component Inventory
-_TBD_
+
+| ID | Type | Shiny Widget/renderer | Depends On | Job Story |
+|---|---|---|---|---|
+| input_start_year | Input | ui.input_select() | _ |  |
+| input_end_year | Input | ui.input_select() | _ |  |
+| input_country | Input | ui.input_select() | _ |  |
+| input_product| Input | ui.input_select() |  |  |
+| filtered_sales | Reactive calc  | @reactive.calc | input_start_year, input_end_year, input_country, input_product  |  |
+|  kpi_metrics |  Reactive calc | @reactive.calc | filtered_sales |  |
+| yoy_by_country | Reactive calc | @reactive.calc  | filtered_sales |  |
+|  top5_products_data | Reactive calc  | @reactive.calc  | filtered_sales |  |
+|  |  |  |  |  |
+|  |  |  |  |  |
+
 
 ## 2.3 Reactivity Diagram
 _TBD_
