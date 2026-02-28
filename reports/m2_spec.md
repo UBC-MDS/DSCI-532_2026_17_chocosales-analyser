@@ -27,10 +27,10 @@
 | kpi_metrics | Reactive calc | @reactive.calc | filtered_sales | #1, #2 |
 | yoy_by_country | Reactive calc | @reactive.calc  | filtered_sales | #1 |
 | top5_products_data | Reactive calc | @reactive.calc | filtered_sales | #2 |
-| out_total_revenue | Output | ui.value_box() + @render.text | kpi_metrics | #1 |
-| out_avg_sales_per_tran | Output | ui.value_box() + @render.text | kpi_metrics | #1 |
-| out_yoy_growth_rate | Output | ui.value_box() + @render.text | kpi_metrics | #1 |
-| out_total_transactions | Output | ui.value_box() + @render.text | kpi_metrics | #1 |
+| out_total_revenue | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
+| out_avg_sales_per_tran | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
+| out_yoy_growth_rate | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
+| out_total_transactions | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
 | out_sales_trend_plot| Output | @render.plot | filtered_sales | #1 |
 | out_country_map | Output | @render.plot | filtered_sales | #1 |
 | out_country_contrib_table | Output |@render.data_frame | filtered_sales | #1, #3 |
@@ -68,7 +68,7 @@ flowchart TD
   FS --> TBL([out_country_contrib_table])
   FS --> FTR([out_app_footer])
 
-  %% KPI text outputs consuming kpi_metrics
+  %% KPI value box outputs consuming kpi_metrics
   KM --> TR([out_total_revenue])
   KM --> AV([out_avg_sales_per_tran])
   KM --> GR([out_yoy_growth_rate])
@@ -95,7 +95,7 @@ flowchart TD
 
 1. **Direct outputs:** `out_sales_trend_plot`, `out_country_map`, `out_country_contrib_table`
 2. **Additional output:** `out_app_footer`
-3. **Downstream calcs:** `kpi_metrics`, `yoy_by_country`, `top5_products_data`
+3. **Downstream calcs:** `g`, `yoy_by_country`, `top5_products_data`
 
 ### `kpi_metrics` (@reactive.calc)
 
