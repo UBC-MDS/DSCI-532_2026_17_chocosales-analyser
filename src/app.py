@@ -500,6 +500,9 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                 .agg(total_sales=("sales", "sum"))
             )
 
+            name_fixes = {"UK": "United Kingdom", "USA": "United States"}
+            sales_by_country["name"] = sales_by_country["country"].replace(name_fixes)
+
             countries = alt.topo_feature(vega_data.world_110m.url, "countries")
 
             country_names_url = (
@@ -517,7 +520,7 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                 )
                 .transform_lookup(
                     lookup="name",
-                    from_=alt.LookupData(sales_by_country, "country", ["total_sales"]),
+                    from_=alt.LookupData(sales_by_country, "name", ["total_sales"]),
                 )
                 .transform_calculate(
                     total_sales="isValid(datum.total_sales) ? datum.total_sales : 0"
