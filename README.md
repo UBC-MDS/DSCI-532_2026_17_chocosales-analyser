@@ -6,6 +6,17 @@ Through filtering, ranking, and visual comparison, the app supports data-driven 
 
 ## Motivation
 
+The ChocoSales Analyser dashboard helps sales managers explore chocolate sales performance across countries, products, and time. 
+
+It enables quick identification of:
+
+- High-growth markets
+- Top-performing products
+- Sales trends over time
+- Regional contribution breakdown
+
+By providing interactive filters and KPI summaries, the dashboard supports data-driven decision-making for marketing strategy and regional investment planning.
+
 ## Live Dashboard
 
 - [stable build](https://019c8ce4-cb22-1cbe-fff5-1faaedcae3ce.share.connect.posit.cloud/)
