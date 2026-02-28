@@ -1,13 +1,19 @@
 name: chocosales-analyser
+
 channels:
-- conda-forge
+  - conda-forge
+
 dependencies:
-- python=3.14.3
-- numpy=2.4.2
-- matplotlib=3.10.8
-- altair=6.0.0
-- pandas=3.0.0
-- shiny=1.4.0
-- jupyterlab=4.5.4
-- kagglehub=1.0.0
-- plotly=6.5.2
+  - python=3.11
+  - numpy
+  - matplotlib
+  - altair
+  - pandas
+  - shiny
+  - jupyterlab
+  - kagglehub
+  - plotly
+  - pip
+  - pip:
+      - shinywidgets
+      - vega_datasets
