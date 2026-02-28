@@ -20,7 +20,7 @@ By providing interactive filters and KPI summaries, the dashboard supports data-
 ## Live Dashboard
 
 - [stable build](https://019c8ce4-cb22-1cbe-fff5-1faaedcae3ce.share.connect.posit.cloud/)
-- [preview build](https://019ca670-a561-e06b-30ff-9dadde89f040.share.connect.posit.cloud/)
+- [preview build (`dev` branch)](https://019ca670-a561-e06b-30ff-9dadde89f040.share.connect.posit.cloud/)
 
 ## Demo
 
