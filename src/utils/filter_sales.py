@@ -18,8 +18,11 @@ def filter_sales(
     if missing:
         raise KeyError(f"Missing required columns: {sorted(missing)}")
     
-    start_year = int(start_year)
-    end_year = int(end_year)
+    try:
+        start_year = int(start_year)
+        end_year = int(end_year)
+    except (TypeError, ValueError) as e:
+        raise ValueError("start_year and end_year must be convertible to int") from e
 
     year_min = min(start_year, end_year)
     year_max = max(start_year, end_year)
