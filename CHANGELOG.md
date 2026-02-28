@@ -34,7 +34,8 @@ All notable changes to this project will be documented in this file.
 - No known issues at the time of release.
 
 ### Reflection
-- JTBD #1 and #2 are implemented in the prototype (filters,KPI summary,YoY/trend/map,top products) and support the main exploration workflow.
+- JTBD #1, #2, and #4 are implemented in the prototype (filters, KPI summary, YoY/trend/map, top products, and a reset button).
+- JTBD #3 is partially supported in M2 through the country contribution table.
 - We stayed close to the M1 sketch but adjusted the layout so KPIs and key charts are visible, with filters in a sidebar plus a reset button for faster exploration.
 - Using a shared `filtered_sales()` reactive step kept outputs consistent and reduced duplicated logic across renderers.
 - switching charts to Altair improved legend interactions.
