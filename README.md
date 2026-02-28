@@ -4,10 +4,14 @@ ChocoSales Analyser is an interactive dashboard for exploring global chocolate s
 The dashboard enables users to analyze sales trends, compare performance across countries and products, and evaluate individual sales representative contributions.
 Through filtering, ranking, and visual comparison, the app supports data-driven decision-making for sales managers and business analysts.
 
-**App Link**
+## Motivation
+
+## Live Dashboard
 
 - [stable build](https://019c8ce4-cb22-1cbe-fff5-1faaedcae3ce.share.connect.posit.cloud/)
 - [preview build](https://019ca670-a561-e06b-30ff-9dadde89f040.share.connect.posit.cloud/)
+
+## Demo
 
 ## Get Started
 
