@@ -13,6 +13,11 @@ def filter_sales(
 
     Expected columns in sales_df: year, country, product
     """
+    required_cols = {"year", "country", "product"}
+    missing = required_cols - set(sales_df.columns)
+    if missing:
+        raise KeyError(f"Missing required columns: {sorted(missing)}")
+    
     start_year = int(start_year)
     end_year = int(end_year)
 
