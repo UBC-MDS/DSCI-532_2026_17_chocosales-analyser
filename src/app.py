@@ -1,5 +1,5 @@
+from datetime import date
 from pathlib import Path
-
 import altair as alt
 import pandas as pd
 from shiny import reactive
@@ -21,6 +21,8 @@ DATA_PATH = (
 )
 sales_df = pd.read_csv(DATA_PATH)
 sales_df["year"] = sales_df["year"].astype(int)
+
+_last_updated = date.today().strftime("%B %d, %Y")
 
 # Reactive function to filter sales data based on user input
 @reactive.calc
@@ -263,7 +265,7 @@ with ui.sidebar(title="Filters", open="desktop"):
 with ui.layout_columns(col_widths=[8, 4], class_="mb-0", fill=False):
     ui.h2("Chocolate Sales Analyser Dashboard", class_="mb-0")
     ui.tags.div(
-        "Last updated: February 14, 2026",
+        f"Last updated: {_last_updated}",
         class_="text-end small pt-0"
     )
 
@@ -650,7 +652,7 @@ with ui.layout_columns(col_widths=[6,6]):
 
             return render.DataGrid(display, summary=False)
     
-    with ui.card():
+    with ui.card(full_screen=True):
         ui.card_header("Top 5 Products")
 
         @render_altair
@@ -705,3 +707,56 @@ with ui.layout_columns(col_widths=[6,6]):
                 .configure_view(strokeOpacity=0)
                 .configure_axis(gridColor="#e5e7eb")
             )
+
+# App footer
+with ui.layout_columns(col_widths=[12], fill=False):
+    @render.ui
+    def out_app_footer():
+        df = filtered_sales()
+        row_count = df.shape[0]
+
+        if row_count > 0:
+            date_col = pd.to_datetime(df["date"], errors="coerce").dropna()
+            if len(date_col) > 0:
+                date_range = (
+                    f"{date_col.min().strftime('%b %d, %Y')} – {date_col.max().strftime('%b %d, %Y')}"
+                )
+            else:
+                date_range = "N/A"
+        else:
+            date_range = "N/A"
+
+        return ui.tags.footer(
+            ui.tags.hr(style="margin: 0.5rem 0; border-color: #dee2e6;"),
+            ui.tags.div(
+                ui.tags.div(
+                    ui.tags.strong("ChocoSales Analyser"),
+                    " — Interactive dashboard for exploring chocolate sales performance "
+                    "across countries, products, and time periods.",
+                    class_="mb-1",
+                ),
+                ui.tags.div(
+                    ui.tags.span("Authors: ", class_="fw-semibold"),
+                    "Chikire Aku-Ibe, Shihan Xu, Samrawit Mezgebo Tsegay",
+                    ui.tags.span(" · ", class_="text-muted mx-1"),
+                    ui.tags.a(
+                        "GitHub Repository",
+                        href="https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser",
+                        target="_blank",
+                        class_="text-decoration-none",
+                    ),
+                    ui.tags.span(" · ", class_="text-muted mx-1"),
+                    ui.tags.span(f"Last updated: {_last_updated}"),
+                    class_="mb-1",
+                ),
+                ui.tags.div(
+                    ui.tags.span("Filtered dataset: ", class_="fw-semibold"),
+                    f"{row_count:,} transactions",
+                    ui.tags.span(" · ", class_="text-muted mx-1"),
+                    ui.tags.span("Date range: "),
+                    date_range,
+                    class_="text-muted",
+                ),
+                class_="small py-2 px-1",
+            ),
+        )
