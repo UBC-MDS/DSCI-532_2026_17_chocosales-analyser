@@ -178,123 +178,119 @@ with ui.layout_columns(
     class_="g-2 mt-0 pt-0",
     fill=False,
 ):
-    with ui.card(
-        class_="text-white h-100 shadow-sm border-0",
-        style="background-color: #003c64; border-color: #003c64;",
-    ):
-        ui.card_header(
-            "Total Sales Revenue (USD)",
-            class_=(
-                "py-2 fw-semibold bg-transparent text-white border-light "
-                "small text-center text-nowrap"
-            ),
+    @render.ui
+    def out_total_revenue_tile():
+        metrics = kpi_metrics()
+        detail, detail_class = format_delta_detail_with_value(
+            metrics["revenue_delta_pct"],
+            metrics["prev_year"],
+            metrics["prev_revenue"],
+            "$",
         )
-
-        @render.ui
-        def out_total_revenue_tile():
-            metrics = kpi_metrics()
-            detail, detail_class = format_delta_detail_with_value(
-                metrics["revenue_delta_pct"],
-                metrics["prev_year"],
-                metrics["prev_revenue"],
-                "$",
-            )
-
-            return ui.TagList(
+        return ui.value_box(
+            title=ui.tags.div(
+                "Total Sales Revenue (USD)",
+                class_="fw-bold fs-5 text-white text-center mb-0",
+            ),
+            value=ui.TagList(
                 ui.tags.div(
                     f"${metrics['total_revenue']:,.1f}",
                     class_="fs-3 fw-bold lh-1 text-white text-center",
                 ),
-                ui.tags.div(detail, class_=detail_class),
-            )
-    
-    with ui.card(
-        class_="text-white h-100 shadow-sm border-0",
-        style="background-color: #003c64; border-color: #003c64;",
-    ):
-        ui.card_header(
-            "Year Over Year Growth Rate (%)",
-            class_=(
-                "py-2 fw-semibold bg-transparent text-white border-light "
-                "small text-center text-nowrap"
+                ui.tags.div(
+                    detail,
+                    class_=f"{detail_class} opacity-75",
+                    style="font-size: 0.78rem;",
+                ),
             ),
+            style="background-color: #003c64; border-color: #003c64;",
+            class_="h-100",
         )
 
-        @render.ui
-        def out_yoy_growth_rate_tile():
-            metrics = kpi_metrics()
-            main_text, detail, detail_class, main_class = format_yoy_tile(
-                metrics["yoy_growth_rate"],
-                metrics["prev_year"],
-                metrics["prev_year_sales"],
-            )
-
-            return ui.TagList(
+    @render.ui
+    def out_yoy_growth_rate():
+        metrics = kpi_metrics()
+        main_text, detail, detail_class, main_class = format_yoy_tile(
+            metrics["yoy_growth_rate"],
+            metrics["prev_year"],
+            metrics["prev_year_sales"],
+        )
+        return ui.value_box(
+            title=ui.tags.div(
+                "Year Over Year Growth Rate (%)",
+                class_="fw-bold fs-5 text-white text-center mb-0",
+            ),
+            value=ui.TagList(
                 ui.tags.div(
                     main_text,
                     class_=f"fs-3 fw-bold lh-1 {main_class} text-center",
                 ),
-                ui.tags.div(detail, class_=detail_class),
-            )
-    
-    with ui.card(
-        class_="text-white h-100 shadow-sm border-0",
-        style="background-color: #003c64; border-color: #003c64;",
-    ):
-        ui.card_header(
-            "Average Sales Per Transaction (USD)",
-            class_=(
-                "py-2 fw-semibold bg-transparent text-white border-light "
-                "small text-center text-nowrap"
+                ui.tags.div(
+                    detail,
+                    class_=f"{detail_class} opacity-75",
+                    style="font-size: 0.78rem;",
+                ),
             ),
+            style="background-color: #003c64; border-color: #003c64;",
+            class_="h-100",
         )
 
-        @render.ui
-        def out_avg_sales_per_tran_tile():
-            metrics = kpi_metrics()
-            detail, detail_class = format_delta_detail_with_value(
-                metrics["avg_sales_delta_pct"],
-                metrics["prev_year"],
-                metrics["prev_avg_sales_per_tran"],
-                "$",
-            )
-
-            return ui.TagList(
+    @render.ui
+    def out_avg_sales_per_tran_tile():
+        metrics = kpi_metrics()
+        detail, detail_class = format_delta_detail_with_value(
+            metrics["avg_sales_delta_pct"],
+            metrics["prev_year"],
+            metrics["prev_avg_sales_per_tran"],
+            "$",
+        )
+        return ui.value_box(
+            title=ui.tags.div(
+                "Average Sales Per Transaction (USD)",
+                class_="fw-bold fs-5 text-white text-center mb-0",
+            ),
+            value=ui.TagList(
                 ui.tags.div(
                     f"${metrics['avg_sales_per_tran']:,.1f}",
                     class_="fs-3 fw-bold lh-1 text-white text-center",
                 ),
-                ui.tags.div(detail, class_=detail_class),
-            )
-    
-    with ui.card(
-        class_="text-white h-100 shadow-sm border-0",
-        style="background-color: #003c64; border-color: #003c64;",
-    ):
-        ui.card_header(
-            "Total Transaction (Count)",
-            class_=(
-                "py-2 fw-semibold bg-transparent text-white border-light "
-                "small text-center text-nowrap"
+                ui.tags.div(
+                    detail,
+                    class_=f"{detail_class} opacity-75",
+                    style="font-size: 0.78rem;",
+                ),
             ),
+            style="background-color: #003c64; border-color: #003c64;",
+            class_="h-100",
         )
 
-        @render.ui
-        def out_total_transactions_tile():
-            metrics = kpi_metrics()
-            detail, detail_class = format_delta_detail_with_value(
-                metrics["transactions_delta_pct"],
-                metrics["prev_year"],
-                metrics["prev_total_transactions"],
-            )
-
-            return ui.TagList(
+    @render.ui
+    def out_total_transactions_tile():
+        metrics = kpi_metrics()
+        detail, detail_class = format_delta_detail_with_value(
+            metrics["transactions_delta_pct"],
+            metrics["prev_year"],
+            metrics["prev_total_transactions"],
+        )
+        return ui.value_box(
+            title=ui.tags.div(
+                "Total Transaction (Count)",
+                class_="fw-bold fs-5 text-white text-center mb-0",
+            ),
+            value=ui.TagList(
                 ui.tags.div(
                     f"{metrics['total_transactions']:,}",
                     class_="fs-3 fw-bold lh-1 text-white text-center",
                 ),
-                ui.tags.div(detail, class_=detail_class),
-            )
+                ui.tags.div(
+                    detail,
+                    class_=f"{detail_class} opacity-75",
+                    style="font-size: 0.78rem;",
+                ),
+            ),
+            style="background-color: #003c64; border-color: #003c64;",
+            class_="h-100",
+        )
         
 #Row 1 of Charts 
 with ui.layout_columns(col_widths=[4,4,4]):

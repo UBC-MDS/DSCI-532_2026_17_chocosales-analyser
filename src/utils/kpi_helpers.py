@@ -110,5 +110,3 @@ def format_yoy_tile(
         main_text_class = "text-white-50"
 
     return f"{yoy_value * 100:,.1f}%", detail_text, detail_class, main_text_class
-
-
