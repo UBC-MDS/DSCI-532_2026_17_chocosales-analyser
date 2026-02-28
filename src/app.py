@@ -148,6 +148,9 @@ def yoy_by_country() -> dict:
         columns=["country", "sales_prev", "sales_curr", "pct_change"]
     )
     _empty = {"data": _empty_df, "prev_year": prev_year, "end_year": end_year}
+    
+    if prev_year == end_year:
+        return _empty
 
     if df.shape[0] == 0:
         return _empty
