@@ -24,9 +24,9 @@ By providing interactive filters and KPI summaries, the dashboard supports data-
 
 ## Demo
 
-Below is a short demo of the dashboard in action: 
-<video src="img/demo.mp4" controls autoplay loop muted width="100%"></video>
+Below is a short demo of the dashboard in action below: 
 
+<video src="img/demo.mp4" controls autoplay loop muted width="100%"></video>
 ## Get Started
 
 Clone the repo and follow the steps below to run the dashboard locally:
