@@ -14,8 +14,11 @@ All notable changes to this project will be documented in this file.
   - Country-level sales choropleth map
 
 ### Changed
+- Switched Row 1 charts to Altair rendering using shinywidgets (`@render_altair`) for interactivity.
 
 ### Fixed
+- Improved choropleth map join by using a proper country-name lookup and handling UK/USA name matching.
+- Prevented YoY-by-country errors when Start Year equals End Year (shows empty state instead of error).
 
 ### Known Issues
 
