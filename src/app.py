@@ -1,4 +1,67 @@
-from shiny.express import ui
+from shiny.express import ui, input, render
+from shiny import reactive
+import pandas as pd
+
+# kpi_metrics
+@reactive.calc
+def kpi_metrics() -> dict:
+    df = filtered_sales().copy()
+
+    if df.shape[0] == 0:
+        return {
+            "total_revenue": 0.0,
+            "avg_sales_per_tran": 0.0,
+            "total_transactions": 0,
+            "yoy_growth_rate": None,
+        }
+
+    # sales numeric safeguard
+    if df["sales"].dtype == "object":
+        df["sales"] = (
+            df["sales"].astype(str).str.replace(r"[\$,]", "", regex=True).astype(float)
+        )
+
+    total_revenue = float(df["sales"].sum())
+    avg_sales_per_tran = float(df["sales"].mean())
+    total_transactions = int(df.shape[0])
+
+    # YoY based on selected end_year vs end_year-1
+    end_year = int(input.end_year())
+    prev_year = end_year - 1
+
+    sales_by_year = df.groupby("year")["sales"].sum()
+    if (end_year in sales_by_year.index) and (prev_year in sales_by_year.index) and (sales_by_year.loc[prev_year] != 0):
+        yoy_growth_rate = float((sales_by_year.loc[end_year] - sales_by_year.loc[prev_year]) / sales_by_year.loc[prev_year])
+    else:
+        yoy_growth_rate = None
+
+    return {
+        "total_revenue": total_revenue,
+        "avg_sales_per_tran": avg_sales_per_tran,
+        "total_transactions": total_transactions,
+        "yoy_growth_rate": yoy_growth_rate,
+    }
+
+# 4 outputs
+@render.text
+def out_total_revenue():
+    v = kpi_metrics()["total_revenue"]
+    return f"${v:,.0f}"
+
+@render.text
+def out_yoy_growth_rate():
+    v = kpi_metrics()["yoy_growth_rate"]
+    return "N/A" if v is None else f"{v*100:,.1f}%"
+
+@render.text
+def out_avg_sales_per_tran():
+    v = kpi_metrics()["avg_sales_per_tran"]
+    return f"${v:,.0f}"
+
+@render.text
+def out_total_transactions():
+    v = kpi_metrics()["total_transactions"]
+    return f"{v:,}"
 
 #set the page title for the app
 ui.page_opts(title="ChocoSales Analyser", fillable=True)
@@ -47,19 +110,19 @@ with ui.layout_columns(
 ):
     with ui.card():
         ui.card_header("Total Sales Revenue(USD)")
-        "XXX"
+        ui.output_text("out_total_revenue")
     
     with ui.card():
         ui.card_header("Year Over Year Growth Rate(%)")
-        "X.X"
+        ui.output_text("out_yoy_growth_rate")
     
     with ui.card():
         ui.card_header("Average Sales Per Transaction(USD)")
-        "XXX"
+        ui.output_text("out_avg_sales_per_tran")
     
     with ui.card():
         ui.card_header("Total Transaction(Count)")
-        "XXX"
+        ui.output_text("out_total_transactions")
         
 #Row 1 of Charts 
 with ui.layout_columns(col_widths=[4,4,4]):
