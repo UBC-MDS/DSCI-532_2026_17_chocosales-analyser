@@ -55,7 +55,7 @@ python src/download_data.py
 
 This will save the dataset to: `data/raw/`.
 
-### Run the EDA Notebook (Milestone 1)
+### Run the EDA Notebook
 
 To explore the data cleaning steps and static visualizations created for the proposal, run:
 
