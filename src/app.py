@@ -1,8 +1,10 @@
 from pathlib import Path
 
+import altair as alt
 import pandas as pd
 from shiny import reactive
 from shiny.express import input, render, ui
+from shinywidgets import render_altair
 from utils.filter_sales import filter_sales
 from utils.kpi_helpers import (
     format_delta_detail_with_value,
@@ -133,6 +135,66 @@ def kpi_metrics() -> dict:
         "prev_year": prev_year,
     }
 
+#Reactive function to calculate YoY growth by country for the bar chart
+@reactive.calc
+def yoy_by_country() -> dict:
+    df = filtered_sales().copy()
+
+    end_year = int(input.end_year())
+    prev_year = int(input.start_year())
+
+    _empty_df = pd.DataFrame(
+        columns=["country", "sales_prev", "sales_curr", "pct_change"]
+    )
+    _empty = {"data": _empty_df, "prev_year": prev_year, "end_year": end_year}
+
+    if df.shape[0] == 0:
+        return _empty
+
+    if df["sales"].dtype == "object":
+        df["sales"] = (
+            df["sales"].astype(str).str.replace(r"[\$,]", "", regex=True).astype(float)
+        )
+
+    totals = (
+        df[df["year"].isin([prev_year, end_year])]
+        .groupby(["country", "year"], as_index=False)
+        .agg(total_sales=("sales", "sum"))
+    )
+
+    if totals.shape[0] == 0:
+        return _empty
+
+    wide = totals.pivot(
+        index="country", columns="year", values="total_sales"
+    ).reset_index()
+    wide.columns.name = None
+
+    # Ensure both year columns exist
+    for col in [prev_year, end_year]:
+        if col not in wide.columns:
+            wide[col] = float("nan")
+
+    wide = wide.rename(columns={prev_year: "sales_prev", end_year: "sales_curr"})
+    wide["sales_prev"] = wide["sales_prev"].fillna(0.0)
+    wide["sales_curr"] = wide["sales_curr"].fillna(0.0)
+
+    # Only keep countries with data in both years
+    wide = wide[(wide["sales_prev"] > 0) & (wide["sales_curr"] > 0)].copy()
+
+    if wide.shape[0] == 0:
+        return _empty
+
+    wide["pct_change"] = (
+        (wide["sales_curr"] - wide["sales_prev"]) / wide["sales_prev"] * 100
+    )
+
+    return {
+        "data": wide[["country", "sales_prev", "sales_curr", "pct_change"]],
+        "prev_year": prev_year,
+        "end_year": end_year,
+    }
+
 #set the page title for the app
 ui.page_opts(title="ChocoSales Analyser", fillable=True)
 
@@ -206,7 +268,7 @@ with ui.layout_columns(
             style="background-color: #003c64; border-color: #003c64;",
             class_="h-100",
         )
-
+#output for YoY growth rate tile
     @render.ui
     def out_yoy_growth_rate():
         metrics = kpi_metrics()
@@ -234,7 +296,7 @@ with ui.layout_columns(
             style="background-color: #003c64; border-color: #003c64;",
             class_="h-100",
         )
-
+#Output for average sales per transaction tile
     @render.ui
     def out_avg_sales_per_tran_tile():
         metrics = kpi_metrics()
@@ -263,7 +325,7 @@ with ui.layout_columns(
             style="background-color: #003c64; border-color: #003c64;",
             class_="h-100",
         )
-
+#output for total transactions tile
     @render.ui
     def out_total_transactions_tile():
         metrics = kpi_metrics()
@@ -293,10 +355,62 @@ with ui.layout_columns(
         )
         
 #Row 1 of Charts 
-with ui.layout_columns(col_widths=[4,4,4]):
+with ui.layout_columns(col_widths=[6,3,3]):
     with ui.card():
         ui.card_header("Year-over-Year Growth By Country")
-        "Bar chart comparing YoY % change by country"
+
+        @render_altair
+        def out_yoy_country_plot():
+            result = yoy_by_country()
+            wide = result["data"]
+            prev_year = result["prev_year"]
+            end_year = result["end_year"]
+
+            _empty = (
+                alt.Chart(pd.DataFrame({"message": ["No YoY comparison data available"]}))
+                .mark_text(color="#6b7280", fontSize=12)
+                .encode(text="message:N")
+                .properties(height=260)
+            )
+
+            if wide.shape[0] == 0:
+                return _empty
+
+            bars = (
+                alt.Chart(wide)
+                .mark_bar()
+                .encode(
+                    y=alt.Y("country:N", sort="-x", title="Country"),
+                    x=alt.X(
+                        "pct_change:Q",
+                        title=f"Percent change in sales (%) — {end_year} vs {prev_year}",
+                    ),
+                    color=alt.condition(
+                        alt.datum.pct_change >= 0,
+                        alt.value("#0072B2"),
+                        alt.value("#E69F00"),
+                    ),
+                    tooltip=[
+                        alt.Tooltip("country:N", title="Country"),
+                        alt.Tooltip("sales_prev:Q", title=f"{prev_year} total", format=",.0f"),
+                        alt.Tooltip("sales_curr:Q", title=f"{end_year} total", format=",.0f"),
+                        alt.Tooltip("pct_change:Q", title="% change", format=".2f"),
+                    ],
+                )
+            )
+
+            rule = (
+                alt.Chart(pd.DataFrame({"x": [0]}))
+                .mark_rule(color="#6b7280", strokeWidth=1)
+                .encode(x="x:Q")
+            )
+
+            return (
+                (bars + rule)
+                .properties(height=260, width="container")
+                .configure_view(strokeOpacity=0)
+                .configure_axis(gridColor="#e5e7eb")
+            )
 
     with ui.card():
         ui.card_header("Sales Trend by Country Over Time")
