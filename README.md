@@ -67,5 +67,5 @@ We welcome contributions, please take a look at our [Contributing Guideline](htt
 
 ## Copyright
 
-Copyright © 2026 Chikire Aku-Ibe, Samrawit Mezgebo Tsegay, Shihan Xu  
+Copyright © 2026 Chikire Aku-Ibe, Samrawit Mezgebo Tsegay, Shihan Xu.  
 Distributed under the MIT [License](https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser/blob/readme-eda/LICENSE).
