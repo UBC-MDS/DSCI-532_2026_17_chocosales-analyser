@@ -31,12 +31,12 @@
 | out_avg_sales_per_tran | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
 | out_yoy_growth_rate | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
 | out_total_transactions | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
-| out_sales_trend_plot| Output | @render.plot | filtered_sales | #1 |
-| out_country_map | Output | @render.plot | filtered_sales | #1 |
+| out_sales_trend_plot| Output | @render.altair | filtered_sales | #1 |
+| out_country_map | Output | @render.altair | filtered_sales | #1 |
 | out_country_contrib_table | Output |@render.data_frame | filtered_sales | #1, #3 |
-| out_yoy_country_plot | Output | @render.plot | yoy_by_country | #1 |
-| out_top5_products_plot | Output | @render.plot | top5_products_data | #2 |
-| out_active_filter_state | Output | @render.text | input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
+| out_yoy_country_plot | Output | @render.altair | yoy_by_country | #1 |
+| out_top5_products_plot | Output | @render.altair | top5_products_data | #2 |
+| out_active_filter_state | Output | @render.altair| input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
 | out_app_footer | Output | @render.ui | filtered_sales | #1, #2, #3, #4 |
 
 ## 2.3 Reactivity Diagram
