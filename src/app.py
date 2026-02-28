@@ -199,6 +199,35 @@ def yoy_by_country() -> dict:
         "end_year": end_year,
     }
 
+# Reactive function to compute top 5 products by total sales
+@reactive.calc
+def top5_products_data() -> pd.DataFrame:
+    df = filtered_sales().copy()
+
+    _empty = pd.DataFrame(columns=["product", "total_sales", "avg_transaction", "total_transactions"])
+
+    if df.shape[0] == 0:
+        return _empty
+
+    if df["sales"].dtype == "object":
+        df["sales"] = (
+            df["sales"].astype(str).str.replace(r"[\$,]", "", regex=True).astype(float)
+        )
+
+    ranked = (
+        df.groupby("product", as_index=False)
+        .agg(
+            total_sales=("sales", "sum"),
+            avg_transaction=("sales", "mean"),
+            total_transactions=("sales", "count"),
+        )
+        .sort_values("total_sales", ascending=False)
+        .head(5)
+    )
+
+    return ranked[["product", "total_sales", "avg_transaction", "total_transactions"]]
+
+
 #set the page title for the app
 ui.page_opts(title="ChocoSales Analyser", fillable=True)
 
@@ -549,4 +578,56 @@ with ui.layout_columns(col_widths=[6,6]):
     
     with ui.card():
         ui.card_header("Top 5 Products")
-        "Horizontal bar chart of top-performing products by sales revenue"
+
+        @render_altair
+        def out_top5_products_plot():
+            top5 = top5_products_data()
+
+            _empty = (
+                alt.Chart(pd.DataFrame({"message": ["No product data available"]}))
+                .mark_text(color="#6b7280", fontSize=12)
+                .encode(text="message:N")
+                .properties(height=260)
+            )
+
+            if top5.shape[0] == 0:
+                return _empty
+
+            selection = alt.selection_point(fields=["product"], bind="legend")
+
+            return (
+                alt.Chart(top5)
+                .mark_bar(cornerRadiusTopRight=3, cornerRadiusBottomRight=3)
+                .encode(
+                    y=alt.Y(
+                        "product:N",
+                        sort="-x",
+                        title=None,
+                        axis=alt.Axis(labelLimit=200),
+                    ),
+                    x=alt.X(
+                        "total_sales:Q",
+                        title="Total Sales (USD)",
+                        axis=alt.Axis(format="$,.0f"),
+                    ),
+                    color=alt.Color(
+                        "product:N",
+                        title="Product",
+                        scale=alt.Scale(
+                            range=["#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00"]
+                        ),
+                        legend=alt.Legend(orient="bottom"),
+                    ),
+                    opacity=alt.condition(selection, alt.value(1.0), alt.value(0.2)),
+                    tooltip=[
+                        alt.Tooltip("product:N", title="Product"),
+                        alt.Tooltip("total_sales:Q", title="Total Sales (USD)", format="$,.0f"),
+                        alt.Tooltip("avg_transaction:Q", title="Avg Transaction (USD)", format="$,.2f"),
+                        alt.Tooltip("total_transactions:Q", title="Transactions", format=","),
+                    ],
+                )
+                .add_params(selection)
+                .properties(height=260, width="container")
+                .configure_view(strokeOpacity=0)
+                .configure_axis(gridColor="#e5e7eb")
+            )
