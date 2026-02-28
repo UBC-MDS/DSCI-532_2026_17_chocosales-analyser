@@ -4,6 +4,7 @@ import pandas as pd
 from shiny import reactive
 from shiny.express import input, render, ui
 from utils.filter_sales import filter_sales
+from utils.kpi_helpers import format_delta_detail
 
 
 DATA_PATH = (
@@ -172,13 +173,10 @@ with ui.layout_columns(
         @render.ui
         def out_total_revenue_tile():
             metrics = kpi_metrics()
-            delta = metrics["revenue_delta_pct"]
-            if delta is None:
-                detail = "vs previous year: N/A"
-                detail_class = "small text-muted mt-1"
-            else:
-                detail = f"vs {metrics['prev_year']}: {delta * 100:+.1f}%"
-                detail_class = "small text-muted mt-1"
+            detail, detail_class = format_delta_detail(
+                metrics["revenue_delta_pct"],
+                metrics["prev_year"],
+            )
 
             return ui.TagList(
                 ui.tags.div(
@@ -202,13 +200,17 @@ with ui.layout_columns(
             if value is None:
                 main_text = "N/A"
                 detail = "requires prior-year baseline"
+                detail_class = "small text-muted mt-1"
             else:
                 main_text = f"{value * 100:,.1f}%"
-                detail = f"based on {metrics['prev_year']} vs {metrics['prev_year'] + 1}"
+                detail, detail_class = format_delta_detail(
+                    value,
+                    metrics["prev_year"],
+                )
 
             return ui.TagList(
                 ui.tags.div(main_text, class_="fs-3 fw-bold lh-1"),
-                ui.tags.div(detail, class_="small text-muted mt-1"),
+                ui.tags.div(detail, class_=detail_class),
             )
     
     with ui.card(class_="h-100 shadow-sm border-0"):
@@ -220,18 +222,17 @@ with ui.layout_columns(
         @render.ui
         def out_avg_sales_per_tran_tile():
             metrics = kpi_metrics()
-            delta = metrics["avg_sales_delta_pct"]
-            if delta is None:
-                detail = "vs previous year: N/A"
-            else:
-                detail = f"vs {metrics['prev_year']}: {delta * 100:+.1f}%"
+            detail, detail_class = format_delta_detail(
+                metrics["avg_sales_delta_pct"],
+                metrics["prev_year"],
+            )
 
             return ui.TagList(
                 ui.tags.div(
                     f"${metrics['avg_sales_per_tran']:,.1f}",
                     class_="fs-3 fw-bold lh-1",
                 ),
-                ui.tags.div(detail, class_="small text-muted mt-1"),
+                ui.tags.div(detail, class_=detail_class),
             )
     
     with ui.card(class_="h-100 shadow-sm border-0"):
@@ -240,18 +241,17 @@ with ui.layout_columns(
         @render.ui
         def out_total_transactions_tile():
             metrics = kpi_metrics()
-            delta = metrics["transactions_delta_pct"]
-            if delta is None:
-                detail = "vs previous year: N/A"
-            else:
-                detail = f"vs {metrics['prev_year']}: {delta * 100:+.1f}%"
+            detail, detail_class = format_delta_detail(
+                metrics["transactions_delta_pct"],
+                metrics["prev_year"],
+            )
 
             return ui.TagList(
                 ui.tags.div(
                     f"{metrics['total_transactions']:,}",
                     class_="fs-3 fw-bold lh-1",
                 ),
-                ui.tags.div(detail, class_="small text-muted mt-1"),
+                ui.tags.div(detail, class_=detail_class),
             )
         
 #Row 1 of Charts 
