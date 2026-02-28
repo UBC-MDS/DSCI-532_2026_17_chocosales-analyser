@@ -230,6 +230,17 @@ def top5_products_data() -> pd.DataFrame:
     return ranked[["product", "total_sales", "avg_transaction", "total_transactions"]]
 
 
+# Reset all filters to their defaults when the reset button is clicked
+@reactive.effect
+@reactive.event(input.reset_filters)
+def reset_filters():
+    year_choices = ["2022", "2023", "2024"]
+    ui.update_select("start_year", selected=year_choices[0])
+    ui.update_select("end_year", selected=year_choices[-1])
+    ui.update_select("country", selected="All")
+    ui.update_select("product", selected="All")
+
+
 #set the page title for the app
 ui.page_opts(title="ChocoSales Analyser", fillable=True)
 
@@ -259,6 +270,11 @@ with ui.sidebar(title="Filters", open="desktop"):
         "Product Category",
         choices=["All"] + sorted(sales_df["product"].dropna().unique().tolist()),
         selected="All"
+    )
+    ui.input_action_button(
+        "reset_filters",
+        "Reset Filters",
+        class_="btn btn-outline-secondary btn-sm w-100 mt-2",
     )
 
 # Main content area
