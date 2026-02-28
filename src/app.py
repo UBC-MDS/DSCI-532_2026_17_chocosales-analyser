@@ -5,7 +5,7 @@
 # you change a filter, every chart, table, and KPI tile updates automatically.
 #
 # Layout overview:
-#   Sidebar: year range, country, product dropdowns + a reset button
+#   Sidebar: year range, country, product dropdowns + reset button + active filter summary
 #   Top row: 4 headline KPI tiles (revenue, YoY growth, avg sale, transactions)
 #   Row 1: YoY bar chart | quarterly trend lines | world sales map
 #   Row 2: country breakdown table | top-5 products bar chart
@@ -331,6 +331,22 @@ with ui.sidebar(title="Filters", open="desktop"):
         class_="btn btn-outline-secondary btn-sm w-100 mt-2",
     )
 
+    # out_active_filter_state — shows a live plain-text summary of whichever
+    # filters are currently active so the user always knows what they're looking at.
+    @render.text
+    def out_active_filter_state():
+        parts = []
+        start = input.start_year()
+        end = input.end_year()
+        parts.append(f"Years: {start}–{end}")
+        country = input.country()
+        if country != "All":
+            parts.append(f"Country: {country}")
+        product = input.product()
+        if product != "All":
+            parts.append(f"Product: {product}")
+        return " | ".join(parts)
+
 # Dashboard title on the left, auto-updating date on the right
 with ui.layout_columns(col_widths=[8, 4], class_="mb-0", fill=False):
     ui.h2("Chocolate Sales Analyser Dashboard", class_="mb-0")
@@ -348,7 +364,7 @@ with ui.layout_columns(
 ):
     # Sum of all sales in the filtered dataset
     @render.ui
-    def out_total_revenue_tile():
+    def out_total_revenue():
         metrics = kpi_metrics()
         detail, detail_class = format_delta_detail_with_value(
             metrics["revenue_delta_pct"],
@@ -405,7 +421,7 @@ with ui.layout_columns(
         )
     # Average value of a single transaction across the filtered rows
     @render.ui
-    def out_avg_sales_per_tran_tile():
+    def out_avg_sales_per_tran():
         metrics = kpi_metrics()
         detail, detail_class = format_delta_detail_with_value(
             metrics["avg_sales_delta_pct"],
@@ -434,7 +450,7 @@ with ui.layout_columns(
         )
     # Total number of rows in the filtered dataset (each row = one transaction)
     @render.ui
-    def out_total_transactions_tile():
+    def out_total_transactions():
         metrics = kpi_metrics()
         detail, detail_class = format_delta_detail_with_value(
             metrics["transactions_delta_pct"],
