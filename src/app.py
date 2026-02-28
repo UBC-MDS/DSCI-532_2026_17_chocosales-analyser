@@ -1,6 +1,31 @@
-from shiny.express import ui, input, render
-from shiny import reactive
+from pathlib import Path
+
 import pandas as pd
+from shiny import reactive
+from shiny.express import input, render, ui
+from utils.filter_sales import filter_sales
+
+
+DATA_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "data"
+    / "processed"
+    / "chocolate_sales_clean.csv"
+)
+sales_df = pd.read_csv(DATA_PATH)
+sales_df["year"] = sales_df["year"].astype(int)
+
+
+@reactive.calc
+def filtered_sales() -> pd.DataFrame:
+    return filter_sales(
+        sales_df=sales_df,
+        start_year=input.start_year(),
+        end_year=input.end_year(),
+        country=input.country(),
+        product=input.product(),
+    )
+
 
 # kpi_metrics
 @reactive.calc
@@ -42,27 +67,6 @@ def kpi_metrics() -> dict:
         "yoy_growth_rate": yoy_growth_rate,
     }
 
-# 4 outputs
-@render.text
-def out_total_revenue():
-    v = kpi_metrics()["total_revenue"]
-    return f"${v:,.0f}"
-
-@render.text
-def out_yoy_growth_rate():
-    v = kpi_metrics()["yoy_growth_rate"]
-    return "N/A" if v is None else f"{v*100:,.1f}%"
-
-@render.text
-def out_avg_sales_per_tran():
-    v = kpi_metrics()["avg_sales_per_tran"]
-    return f"${v:,.0f}"
-
-@render.text
-def out_total_transactions():
-    v = kpi_metrics()["total_transactions"]
-    return f"{v:,}"
-
 #set the page title for the app
 ui.page_opts(title="ChocoSales Analyser", fillable=True)
 
@@ -84,13 +88,13 @@ with ui.sidebar(title="Filters", open="desktop"):
     ui.input_select(
         "country",
         "Country",
-        choices=["All"],
+        choices=["All"] + sorted(sales_df["country"].dropna().unique().tolist()),
         selected="All"
     )
     ui.input_select(
         "product",
         "Product Category",
-        choices=["All"],
+        choices=["All"] + sorted(sales_df["product"].dropna().unique().tolist()),
         selected="All"
     )
 
@@ -110,19 +114,35 @@ with ui.layout_columns(
 ):
     with ui.card():
         ui.card_header("Total Sales Revenue(USD)")
-        ui.output_text("out_total_revenue")
+
+        @render.text
+        def out_total_revenue():
+            v = kpi_metrics()["total_revenue"]
+            return f"${v:,.0f}"
     
     with ui.card():
         ui.card_header("Year Over Year Growth Rate(%)")
-        ui.output_text("out_yoy_growth_rate")
+
+        @render.text
+        def out_yoy_growth_rate():
+            v = kpi_metrics()["yoy_growth_rate"]
+            return "N/A" if v is None else f"{v*100:,.1f}%"
     
     with ui.card():
         ui.card_header("Average Sales Per Transaction(USD)")
-        ui.output_text("out_avg_sales_per_tran")
+
+        @render.text
+        def out_avg_sales_per_tran():
+            v = kpi_metrics()["avg_sales_per_tran"]
+            return f"${v:,.0f}"
     
     with ui.card():
         ui.card_header("Total Transaction(Count)")
-        ui.output_text("out_total_transactions")
+
+        @render.text
+        def out_total_transactions():
+            v = kpi_metrics()["total_transactions"]
+            return f"{v:,}"
         
 #Row 1 of Charts 
 with ui.layout_columns(col_widths=[4,4,4]):
