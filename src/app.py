@@ -373,7 +373,6 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                 .encode(text="message:N")
                 .properties(height=260)
             )
-
             if wide.shape[0] == 0:
                 return _empty
 
@@ -418,6 +417,7 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
 
         @render_altair
         def out_sales_trend_plot():
+            # Use filtered_sales() so the plot responds to all sidebar filters
             df = filtered_sales().copy()
 
             _empty = (
@@ -426,7 +426,6 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                 .encode(text="message:N")
                 .properties(height=260)
             )
-
             if df.shape[0] == 0:
                 return _empty
 
@@ -439,12 +438,12 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
 
             df["ym"] = pd.to_datetime(df["year_month_period"], errors="coerce")
 
+            # Monthly totals per country for the trend line
             trend = (
                 df.dropna(subset=["ym"])
                 .groupby(["ym", "country"], as_index=False)
                 .agg(total_sales=("sales", "sum"))
             )
-
             if trend.shape[0] == 0:
                 return _empty
 
@@ -476,6 +475,7 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
 
         @render_altair
         def out_country_map():
+            # Use filtered_sales() so the map updates with the same filters as other charts
             df = filtered_sales().copy()
 
             _empty = (
@@ -484,7 +484,6 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                 .encode(text="message:N")
                 .properties(height=260)
             )
-
             if df.shape[0] == 0:
                 return _empty
 
@@ -495,11 +494,13 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                     .astype(float)
                 )
 
+            # Aggregate totals, then join onto the world map by country name
             sales_by_country = (
                 df.groupby("country", as_index=False)
                 .agg(total_sales=("sales", "sum"))
             )
 
+            # Fix common abbreviations so they match the map's country names
             name_fixes = {"UK": "United Kingdom", "USA": "United States"}
             sales_by_country["name"] = sales_by_country["country"].replace(name_fixes)
 
@@ -523,6 +524,7 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                     from_=alt.LookupData(sales_by_country, "name", ["total_sales"]),
                 )
                 .transform_calculate(
+                    # Countries not present in the filtered data should still render as 0
                     total_sales="isValid(datum.total_sales) ? datum.total_sales : 0"
                 )
                 .encode(
