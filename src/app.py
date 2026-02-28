@@ -354,8 +354,8 @@ with ui.layout_columns(
             class_="h-100",
         )
         
-#Row 1 of Charts 
-with ui.layout_columns(col_widths=[6,3,3]):
+# Row 1 of Charts
+with ui.layout_columns(col_widths=[6, 3, 3]):
     with ui.card():
         ui.card_header("Year-over-Year Growth By Country")
 
@@ -414,8 +414,62 @@ with ui.layout_columns(col_widths=[6,3,3]):
 
     with ui.card():
         ui.card_header("Sales Trend by Country Over Time")
-        "Line chart showing sales over time, color-coded by country"
-    
+
+        @render_altair
+        def out_sales_trend_plot():
+            df = filtered_sales().copy()
+
+            _empty = (
+                alt.Chart(pd.DataFrame({"message": ["No data available for selected filters"]}))
+                .mark_text(color="#6b7280", fontSize=12)
+                .encode(text="message:N")
+                .properties(height=260)
+            )
+
+            if df.shape[0] == 0:
+                return _empty
+
+            if df["sales"].dtype == "object":
+                df["sales"] = (
+                    df["sales"].astype(str)
+                    .str.replace(r"[\$,]", "", regex=True)
+                    .astype(float)
+                )
+
+            df["ym"] = pd.to_datetime(df["year_month_period"], errors="coerce")
+
+            trend = (
+                df.dropna(subset=["ym"])
+                .groupby(["ym", "country"], as_index=False)
+                .agg(total_sales=("sales", "sum"))
+            )
+
+            if trend.shape[0] == 0:
+                return _empty
+
+            return (
+                alt.Chart(trend)
+                .mark_line(point=True)
+                .encode(
+                    x=alt.X("ym:T", title="Month"),
+                    y=alt.Y(
+                        "total_sales:Q",
+                        title="Total sales (USD)",
+                        axis=alt.Axis(format="$,.0f"),
+                    ),
+                    color=alt.Color("country:N", title="Country"),
+                    tooltip=[
+                        alt.Tooltip("country:N", title="Country"),
+                        alt.Tooltip("ym:T", title="Month"),
+                        alt.Tooltip("total_sales:Q", title="Sales", format="$,.0f"),
+                    ],
+                )
+                .properties(height=260, width="container")
+                .interactive()
+                .configure_view(strokeOpacity=0)
+                .configure_axis(gridColor="#e5e7eb")
+            )
+
     with ui.card():
         ui.card_header("Countries and Regional Contribution Breakdown")
         "map showing sales by country"
