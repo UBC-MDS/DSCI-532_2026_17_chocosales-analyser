@@ -24,6 +24,8 @@ By providing interactive filters and KPI summaries, the dashboard supports data-
 
 ## Demo
 
+Below is a short demo of the dashboard in action:
+
 ## Get Started
 
 Clone the repo and follow the steps below to run the dashboard locally:
