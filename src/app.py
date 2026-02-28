@@ -15,7 +15,7 @@ DATA_PATH = (
 sales_df = pd.read_csv(DATA_PATH)
 sales_df["year"] = sales_df["year"].astype(int)
 
-
+# Reactive function to filter sales data based on user input
 @reactive.calc
 def filtered_sales() -> pd.DataFrame:
     return filter_sales(
@@ -38,6 +38,10 @@ def kpi_metrics() -> dict:
             "avg_sales_per_tran": 0.0,
             "total_transactions": 0,
             "yoy_growth_rate": None,
+            "revenue_delta_pct": None,
+            "avg_sales_delta_pct": None,
+            "transactions_delta_pct": None,
+            "prev_year": int(input.end_year()) - 1,
         }
 
     # sales numeric safeguard
@@ -50,21 +54,71 @@ def kpi_metrics() -> dict:
     avg_sales_per_tran = float(df["sales"].mean())
     total_transactions = int(df.shape[0])
 
-    # YoY based on selected end_year vs end_year-1
+    # YoY and KPI comparisons based on selected end_year vs end_year-1
     end_year = int(input.end_year())
     prev_year = end_year - 1
 
+    current_year_df = df[df["year"] == end_year]
+    previous_year_df = df[df["year"] == prev_year]
+
+    current_revenue = float(current_year_df["sales"].sum())
+    previous_revenue = float(previous_year_df["sales"].sum())
+
+    current_avg_sales = (
+        float(current_year_df["sales"].mean())
+        if current_year_df.shape[0] > 0
+        else 0.0
+    )
+    previous_avg_sales = (
+        float(previous_year_df["sales"].mean())
+        if previous_year_df.shape[0] > 0
+        else 0.0
+    )
+
+    current_transactions = int(current_year_df.shape[0])
+    previous_transactions = int(previous_year_df.shape[0])
+
     sales_by_year = df.groupby("year")["sales"].sum()
-    if (end_year in sales_by_year.index) and (prev_year in sales_by_year.index) and (sales_by_year.loc[prev_year] != 0):
-        yoy_growth_rate = float((sales_by_year.loc[end_year] - sales_by_year.loc[prev_year]) / sales_by_year.loc[prev_year])
+    if (
+        (end_year in sales_by_year.index)
+        and (prev_year in sales_by_year.index)
+        and (sales_by_year.loc[prev_year] != 0)
+    ):
+        yoy_growth_rate = float(
+            (sales_by_year.loc[end_year] - sales_by_year.loc[prev_year])
+            / sales_by_year.loc[prev_year]
+        )
     else:
         yoy_growth_rate = None
+
+    if previous_revenue != 0:
+        revenue_delta_pct = (current_revenue - previous_revenue) / previous_revenue
+    else:
+        revenue_delta_pct = None
+
+    if previous_avg_sales != 0:
+        avg_sales_delta_pct = (
+            current_avg_sales - previous_avg_sales
+        ) / previous_avg_sales
+    else:
+        avg_sales_delta_pct = None
+
+    if previous_transactions != 0:
+        transactions_delta_pct = (
+            current_transactions - previous_transactions
+        ) / previous_transactions
+    else:
+        transactions_delta_pct = None
 
     return {
         "total_revenue": total_revenue,
         "avg_sales_per_tran": avg_sales_per_tran,
         "total_transactions": total_transactions,
         "yoy_growth_rate": yoy_growth_rate,
+        "revenue_delta_pct": revenue_delta_pct,
+        "avg_sales_delta_pct": avg_sales_delta_pct,
+        "transactions_delta_pct": transactions_delta_pct,
+        "prev_year": prev_year,
     }
 
 #set the page title for the app
@@ -109,40 +163,96 @@ with ui.layout_columns(col_widths=[8, 4], class_="mb-0", fill=False):
 # Add statistics cards row
 with ui.layout_columns(
     col_widths=[3, 3, 3, 3],
-    class_="mt-0 pt-0",
+    class_="g-2 mt-0 pt-0",
     fill=False,
 ):
-    with ui.card():
-        ui.card_header("Total Sales Revenue(USD)")
+    with ui.card(class_="h-100 shadow-sm border-0"):
+        ui.card_header("Total Sales Revenue (USD)", class_="py-2 fw-semibold")
 
-        @render.text
-        def out_total_revenue():
-            v = kpi_metrics()["total_revenue"]
-            return f"${v:,.0f}"
+        @render.ui
+        def out_total_revenue_tile():
+            metrics = kpi_metrics()
+            delta = metrics["revenue_delta_pct"]
+            if delta is None:
+                detail = "vs previous year: N/A"
+                detail_class = "small text-muted mt-1"
+            else:
+                detail = f"vs {metrics['prev_year']}: {delta * 100:+.1f}%"
+                detail_class = "small text-muted mt-1"
+
+            return ui.TagList(
+                ui.tags.div(
+                    f"${metrics['total_revenue']:,.1f}",
+                    class_="fs-3 fw-bold lh-1",
+                ),
+                ui.tags.div(detail, class_=detail_class),
+            )
     
-    with ui.card():
-        ui.card_header("Year Over Year Growth Rate(%)")
+    with ui.card(class_="h-100 shadow-sm border-0"):
+        ui.card_header(
+            "Year Over Year Growth Rate (%)",
+            class_="py-2 fw-semibold",
+        )
 
-        @render.text
-        def out_yoy_growth_rate():
-            v = kpi_metrics()["yoy_growth_rate"]
-            return "N/A" if v is None else f"{v*100:,.1f}%"
+        @render.ui
+        def out_yoy_growth_rate_tile():
+            metrics = kpi_metrics()
+            value = metrics["yoy_growth_rate"]
+
+            if value is None:
+                main_text = "N/A"
+                detail = "requires prior-year baseline"
+            else:
+                main_text = f"{value * 100:,.1f}%"
+                detail = f"based on {metrics['prev_year']} vs {metrics['prev_year'] + 1}"
+
+            return ui.TagList(
+                ui.tags.div(main_text, class_="fs-3 fw-bold lh-1"),
+                ui.tags.div(detail, class_="small text-muted mt-1"),
+            )
     
-    with ui.card():
-        ui.card_header("Average Sales Per Transaction(USD)")
+    with ui.card(class_="h-100 shadow-sm border-0"):
+        ui.card_header(
+            "Average Sales Per Transaction (USD)",
+            class_="py-2 fw-semibold",
+        )
 
-        @render.text
-        def out_avg_sales_per_tran():
-            v = kpi_metrics()["avg_sales_per_tran"]
-            return f"${v:,.0f}"
+        @render.ui
+        def out_avg_sales_per_tran_tile():
+            metrics = kpi_metrics()
+            delta = metrics["avg_sales_delta_pct"]
+            if delta is None:
+                detail = "vs previous year: N/A"
+            else:
+                detail = f"vs {metrics['prev_year']}: {delta * 100:+.1f}%"
+
+            return ui.TagList(
+                ui.tags.div(
+                    f"${metrics['avg_sales_per_tran']:,.1f}",
+                    class_="fs-3 fw-bold lh-1",
+                ),
+                ui.tags.div(detail, class_="small text-muted mt-1"),
+            )
     
-    with ui.card():
-        ui.card_header("Total Transaction(Count)")
+    with ui.card(class_="h-100 shadow-sm border-0"):
+        ui.card_header("Total Transaction (Count)", class_="py-2 fw-semibold")
 
-        @render.text
-        def out_total_transactions():
-            v = kpi_metrics()["total_transactions"]
-            return f"{v:,}"
+        @render.ui
+        def out_total_transactions_tile():
+            metrics = kpi_metrics()
+            delta = metrics["transactions_delta_pct"]
+            if delta is None:
+                detail = "vs previous year: N/A"
+            else:
+                detail = f"vs {metrics['prev_year']}: {delta * 100:+.1f}%"
+
+            return ui.TagList(
+                ui.tags.div(
+                    f"{metrics['total_transactions']:,}",
+                    class_="fs-3 fw-bold lh-1",
+                ),
+                ui.tags.div(detail, class_="small text-muted mt-1"),
+            )
         
 #Row 1 of Charts 
 with ui.layout_columns(col_widths=[4,4,4]):
