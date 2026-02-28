@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 - Top 5 products bar chart driven by a reactive calculation.
 - Reset Filters button to quickly return to the default view.
 - Reusable utilities in `utils/` (e.g.`filter_sales`).
-- Footer + active filter state outputs to give users context while filtering.
+- Footer & active filter state outputs to give users context while filtering.
 - Completed M2 spec sections (component inventory, reactivity diagram, calculation details) to match the prototype.
 
 ### Changed
@@ -36,4 +36,5 @@ All notable changes to this project will be documented in this file.
 ### Reflection
 - JTBD #1 and #2 are implemented in the prototype (filters,KPI summary,YoY/trend/map,top products) and support the main exploration workflow.
 - We stayed close to the M1 sketch but adjusted the layout so KPIs and key charts are visible, with filters in a sidebar plus a reset button for faster exploration.
-- Using a shared `filtered_sales()` reactive step kept outputs consistent and reduced duplicated logic across renderers, switching charts to Altair improved legend interactions.
+- Using a shared `filtered_sales()` reactive step kept outputs consistent and reduced duplicated logic across renderers.
+- switching charts to Altair improved legend interactions.
