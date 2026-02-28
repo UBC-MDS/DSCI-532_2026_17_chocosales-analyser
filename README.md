@@ -24,7 +24,7 @@ By providing interactive filters and KPI summaries, the dashboard supports data-
 
 ## Demo
 
-Below is a short demo of the dashboard in action below: 
+Below is a short demo of the dashboard in action: 
 
 <video src="https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser/raw/refs/heads/main/img/demo.mp4" controls autoplay loop muted width="100%"></video>
 ## Get Started
