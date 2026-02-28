@@ -237,14 +237,14 @@ with ui.sidebar(title="Filters", open="desktop"):
         ui.input_select(
             "start_year",
             "Start Year",
-            choices=["2022", "2023", "2024", "2025"],
+            choices=["2022", "2023", "2024"],
             selected="2022"
         )
         ui.input_select(
             "end_year",
             "End Year",
-            choices=["2022", "2023", "2024", "2025"],
-            selected="2025"
+            choices=["2022", "2023", "2024"],
+            selected="2024"
         )
     ui.input_select(
         "country",
@@ -388,8 +388,8 @@ with ui.layout_columns(
         )
         
 # Row 1 of Charts
-with ui.layout_columns(col_widths=[6, 3, 3]):
-    with ui.card():
+with ui.layout_columns(col_widths=[4, 4, 4], fill=True):
+    with ui.card(full_screen=True, class_="shadow-sm border-0"):
         ui.card_header("Year-over-Year Growth By Country")
 
         @render_altair
@@ -444,7 +444,7 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                 .configure_axis(gridColor="#e5e7eb")
             )
 
-    with ui.card():
+    with ui.card(full_screen=True, class_="shadow-sm border-0"):
         ui.card_header("Sales Trend by Country Over Time")
 
         @render_altair
@@ -469,40 +469,65 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
                 )
 
             df["ym"] = pd.to_datetime(df["year_month_period"], errors="coerce")
+            df = df.dropna(subset=["ym"])
+            if df.shape[0] == 0:
+                return _empty
 
-            # Monthly totals per country for the trend line
+            # Aggregate to quarters
+            df["quarter"] = df["ym"].dt.to_period("Q").dt.start_time
+
             trend = (
-                df.dropna(subset=["ym"])
-                .groupby(["ym", "country"], as_index=False)
-                .agg(total_sales=("sales", "sum"))
+                df.groupby(["quarter", "country"], as_index=False)
+                .agg(total_sales=("sales", "sum"), transactions=("sales", "count"))
             )
             if trend.shape[0] == 0:
                 return _empty
+
+            selection = alt.selection_point(fields=["country"], bind="legend")
 
             return (
                 alt.Chart(trend)
                 .mark_line(point=True)
                 .encode(
-                    x=alt.X("ym:T", title="Month"),
+                    x=alt.X("quarter:T", title="Quarter", axis=alt.Axis(format="%Y Q%q", labelAngle=-45, labelFontSize=10)),
                     y=alt.Y(
                         "total_sales:Q",
-                        title="Total sales (USD)",
+                        title="Total Sales (USD)",
                         axis=alt.Axis(format="$,.0f"),
                     ),
-                    color=alt.Color("country:N", title="Country"),
+                    color=alt.Color(
+                        "country:N",
+                        title="Country",
+                        scale=alt.Scale(
+                            range=["#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7"]
+                        ),
+                        legend=alt.Legend(
+                            orient="bottom",
+                            columns=3,
+                            labelFontSize=10,
+                            titleFontSize=10,
+                        ),
+                    ),
+                    opacity=alt.condition(selection, alt.value(1.0), alt.value(0.1)),
                     tooltip=[
                         alt.Tooltip("country:N", title="Country"),
-                        alt.Tooltip("ym:T", title="Month"),
-                        alt.Tooltip("total_sales:Q", title="Sales", format="$,.0f"),
+                        alt.Tooltip("quarter:T", title="Quarter", format="%Y Q%q"),
+                        alt.Tooltip("total_sales:Q", title="Total Sales (USD)", format="$,.0f"),
+                        alt.Tooltip("transactions:Q", title="Transactions", format=","),
                     ],
                 )
-                .properties(height=260, width="container")
+                .add_params(selection)
+                .properties(height=220, width="container")
                 .interactive()
                 .configure_view(strokeOpacity=0)
-                .configure_axis(gridColor="#e5e7eb")
+                .configure_axis(
+                    gridColor="#e5e7eb",
+                    labelFontSize=10,
+                    titleFontSize=11,
+                )
             )
 
-    with ui.card():
+    with ui.card(full_screen=True, class_="shadow-sm border-0"):
         ui.card_header("Countries and Regional Contribution Breakdown")
 
         @render_altair
@@ -574,7 +599,56 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
 with ui.layout_columns(col_widths=[6,6]):
     with ui.card():
         ui.card_header("Countries Sales Contribution")
-        "Interactive table with transaction details (Country, Top Sales Representative, Total Sales(USD), Percentage Contribution(%))"
+
+        @render.data_frame
+        def out_country_contrib_table():
+            df = filtered_sales().copy()
+
+            if df.shape[0] == 0:
+                return render.DataGrid(
+                    pd.DataFrame(columns=["Country", "Top Sales Rep", "Total Sales (USD)", "Contribution (%)"]),
+                    summary=False,
+                )
+
+            if df["sales"].dtype == "object":
+                df["sales"] = (
+                    df["sales"].astype(str).str.replace(r"[\$,]", "", regex=True).astype(float)
+                )
+
+            # Total sales per country
+            country_totals = (
+                df.groupby("country", as_index=False)
+                .agg(total_sales=("sales", "sum"))
+            )
+
+            # Top sales rep per country (by total sales)
+            rep_totals = (
+                df.groupby(["country", "sales_person"], as_index=False)
+                .agg(rep_sales=("sales", "sum"))
+            )
+            top_reps = (
+                rep_totals.sort_values("rep_sales", ascending=False)
+                .drop_duplicates(subset="country", keep="first")[["country", "sales_person"]]
+                .rename(columns={"sales_person": "top_rep"})
+            )
+
+            # Merge and compute percentage contribution
+            table = country_totals.merge(top_reps, on="country", how="left")
+            grand_total = table["total_sales"].sum()
+            table["pct_contribution"] = (table["total_sales"] / grand_total * 100).round(1)
+
+            # Sort by contribution descending
+            table = table.sort_values("pct_contribution", ascending=False).reset_index(drop=True)
+
+            # Format for display
+            display = pd.DataFrame({
+                "Country": table["country"],
+                "Top Sales Rep": table["top_rep"],
+                "Total Sales (USD)": table["total_sales"].apply(lambda v: f"${v:,.0f}"),
+                "Contribution (%)": table["pct_contribution"].apply(lambda v: f"{v:.1f}%"),
+            })
+
+            return render.DataGrid(display, summary=False)
     
     with ui.card():
         ui.card_header("Top 5 Products")
