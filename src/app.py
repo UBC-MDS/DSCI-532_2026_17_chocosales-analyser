@@ -5,6 +5,7 @@ import pandas as pd
 from shiny import reactive
 from shiny.express import input, render, ui
 from shinywidgets import render_altair
+from vega_datasets import data as vega_data
 from utils.filter_sales import filter_sales
 from utils.kpi_helpers import (
     format_delta_detail_with_value,
@@ -472,7 +473,65 @@ with ui.layout_columns(col_widths=[6, 3, 3]):
 
     with ui.card():
         ui.card_header("Countries and Regional Contribution Breakdown")
-        "map showing sales by country"
+
+        @render_altair
+        def out_country_map():
+            df = filtered_sales().copy()
+
+            _empty = (
+                alt.Chart(pd.DataFrame({"message": ["No data available for selected filters"]}))
+                .mark_text(color="#6b7280", fontSize=12)
+                .encode(text="message:N")
+                .properties(height=260)
+            )
+
+            if df.shape[0] == 0:
+                return _empty
+
+            if df["sales"].dtype == "object":
+                df["sales"] = (
+                    df["sales"].astype(str)
+                    .str.replace(r"[\$,]", "", regex=True)
+                    .astype(float)
+                )
+
+            sales_by_country = (
+                df.groupby("country", as_index=False)
+                .agg(total_sales=("sales", "sum"))
+            )
+
+            countries = alt.topo_feature(vega_data.world_110m.url, "countries")
+
+            country_names_url = (
+                "https://gist.githubusercontent.com/mbostock/4090846/raw/"
+                "07e73f3c2d21558489604a0bc434b3a5cf41a867/world-country-names.tsv"
+            )
+
+            return (
+                alt.Chart(countries)
+                .mark_geoshape(stroke="white", strokeWidth=0.2)
+                .project("equalEarth")
+                .transform_lookup(
+                    lookup="id",
+                    from_=alt.LookupData(country_names_url, "id", ["name"]),
+                )
+                .transform_lookup(
+                    lookup="name",
+                    from_=alt.LookupData(sales_by_country, "country", ["total_sales"]),
+                )
+                .transform_calculate(
+                    total_sales="isValid(datum.total_sales) ? datum.total_sales : 0"
+                )
+                .encode(
+                    color=alt.Color("total_sales:Q", title="Total sales (USD)"),
+                    tooltip=[
+                        alt.Tooltip("name:N", title="Country"),
+                        alt.Tooltip("total_sales:Q", title="Sales", format="$,.0f"),
+                    ],
+                )
+                .properties(height=260, width="container")
+                .configure_view(strokeOpacity=0)
+            )
 
 # Row 2 of Chart and table
 with ui.layout_columns(col_widths=[6,6]):
