@@ -1,8 +1,10 @@
-# Contributor Covenant Code of Conduct
+# ChocoSales Analyser Code of Conduct
 
 ## Our Pledge
 
-We as members, contributors, and leaders pledge to make participation in our
+This Code of Conduct applies to the ChocoSales Analyser project and all associated community spaces, including our GitHub repository, issue tracker, pull requests, and communication channels.
+
+We as members, contributors, and leaders of the **ChocoSales Analyser project** pledge to make participation in our
 community a harassment-free experience for everyone, regardless of age, body
 size, visible or invisible disability, ethnicity, sex characteristics, gender
 identity and expression, level of experience, education, socio-economic status,
@@ -14,27 +16,25 @@ diverse, inclusive, and healthy community.
 
 ## Our Standards
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+As contributors to the ChocoSales Analyser project, we are committed to maintaining a respectful, collaborative, and professional development environment.
 
-- Demonstrating empathy and kindness toward other people
-- Being respectful of differing opinions, viewpoints, and experiences
-- Giving and gracefully accepting constructive feedback
-- Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-- Focusing on what is best not just for us as individuals, but for the
-  overall community
+Examples of behavior that contributes to a positive project environment include:
+
+- Demonstrating empathy, patience, and professionalism in code reviews and discussions
+- Providing clear, constructive feedback on pull requests and issues
+- Respecting different technical approaches and data interpretation perspectives
+- Communicating openly about design decisions, dashboard features, and analytical assumptions
+- Writing clear documentation and reproducible code to support team collaboration
+- Taking responsibility for mistakes in code, data processing, or analysis and working collaboratively to resolve them
+- Focusing on building a high-quality, user-centered dashboard that benefits the broader community
 
 Examples of unacceptable behavior include:
 
-- The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-- Trolling, insulting or derogatory comments, and personal or political attacks
-- Public or private harassment
-- Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-- Other conduct which could reasonably be considered inappropriate in a
-  professional setting
+- Dismissing or belittling others’ technical contributions
+- Blocking collaboration through unconstructive criticism
+- Misrepresenting data findings or intentionally misleading analysis
+- Sharing private team communication or personal information without consent
+- Harassment, discrimination, or any conduct inappropriate in a professional academic setting
 
 ## Enforcement Responsibilities
 
@@ -58,8 +58,7 @@ representative at an online or offline event.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at shihan66@student.ubc.ca.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the ChocoSales Analyser project maintainers at shihan66@student.ubc.ca.
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the
