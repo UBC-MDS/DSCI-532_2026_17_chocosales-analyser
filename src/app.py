@@ -24,8 +24,8 @@ from shinywidgets import render_altair        # lets us drop Altair charts into 
 from vega_datasets import data as vega_data  # provides the world map TopoJSON for the choropleth
 
 # our own helpers — filter_sales does the row filtering, kpi_helpers formats the tile text
-from src.utils.filter_sales import filter_sales
-from src.utils.kpi_helpers import (
+from utils.filter_sales import filter_sales
+from utils.kpi_helpers import (
     format_delta_detail_with_value,
     format_yoy_tile,
 )
