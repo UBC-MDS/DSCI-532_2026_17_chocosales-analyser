@@ -4,3 +4,5 @@ altair==6.0.0
 shinywidgets==0.7.1
 anywidget==0.9.21
 vega_datasets==0.9.0
+querychat==0.5.1
+chatlas==0.15.1
