@@ -21,6 +21,7 @@ import pandas as pd
 from shiny import reactive
 from shiny.express import input, render, ui   # Express mode — no explicit App() needed
 from shinywidgets import render_altair        # lets us drop Altair charts into Shiny outputs
+from querychat.express import QueryChat
 from vega_datasets import data as vega_data  # provides the world map TopoJSON for the choropleth
 
 # our own helpers — filter_sales does the row filtering, kpi_helpers formats the tile text
@@ -41,6 +42,31 @@ DATA_PATH = (
 )
 sales_df = pd.read_csv(DATA_PATH)
 sales_df["year"] = sales_df["year"].astype(int)  # make year an int so filter comparisons work cleanly
+
+# ---------------------------------------------------------------------------
+# QueryChat (GenAI) setup — separate from the dashboard filters.
+# ---------------------------------------------------------------------------
+
+QC_GREETING_PATH = (
+    Path(__file__).resolve().parents[1] / "reports" / "querychat_greeting.md"
+)
+
+qc_sales_df = sales_df.copy()
+
+# Ensure numeric sales for QueryChat (so SUM/AVG works in SQL)
+if qc_sales_df["sales"].dtype == "object":
+    qc_sales_df["sales"] = (
+        qc_sales_df["sales"]
+        .astype(str)
+        .str.replace(r"[\$,]", "", regex=True)
+        .astype(float)
+    )
+
+qc = QueryChat(
+    qc_sales_df,
+    "chocolate_sales",
+    greeting=QC_GREETING_PATH if QC_GREETING_PATH.exists() else None,
+)
 
 # Grab today's date once so we can show it in the header and footer
 _last_updated = date.today().strftime("%B %d, %Y")
