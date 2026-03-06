@@ -22,6 +22,7 @@ from shiny import reactive
 from shiny.express import input, render, ui   # Express mode — no explicit App() needed
 from shinywidgets import render_altair        # lets us drop Altair charts into Shiny outputs
 from querychat.express import QueryChat
+from chatlas import ChatGithub
 from vega_datasets import data as vega_data  # provides the world map TopoJSON for the choropleth
 
 # our own helpers — filter_sales does the row filtering, kpi_helpers formats the tile text
@@ -62,10 +63,15 @@ if qc_sales_df["sales"].dtype == "object":
         .astype(float)
     )
 
+qc_greeting = None
+if QC_GREETING_PATH.exists():
+    qc_greeting = QC_GREETING_PATH.read_text(encoding="utf-8")
+
 qc = QueryChat(
     qc_sales_df,
     "chocolate_sales",
-    greeting=QC_GREETING_PATH if QC_GREETING_PATH.exists() else None,
+    greeting=qc_greeting,
+    client=ChatGithub(model="gpt-4.1"),
 )
 
 # Grab today's date once so we can show it in the header and footer
@@ -275,7 +281,9 @@ def yoy_by_country() -> dict:
 def top5_products_data() -> pd.DataFrame:
     df = filtered_sales().copy()
 
-    _empty = pd.DataFrame(columns=["product", "total_sales", "avg_transaction", "total_transactions"])
+    _empty = pd.DataFrame(
+        columns=["product", "total_sales", "avg_transaction", "total_transactions"]
+    )
 
     if df.shape[0] == 0:
         return _empty
@@ -424,6 +432,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
                 )
+
             # Percentage change in revenue from end_year-1 to end_year
             @render.ui
             def out_yoy_growth_rate():
@@ -452,6 +461,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
                 )
+
             # Average value of a single transaction across the filtered rows
             @render.ui
             def out_avg_sales_per_tran():
@@ -481,6 +491,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
                 )
+
             # Total number of rows in the filtered dataset (each row = one transaction)
             @render.ui
             def out_total_transactions():
@@ -625,7 +636,8 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                         alt.Chart(trend)
                         .mark_line(point=True)
                         .encode(
-                            x=alt.X("quarter:T", title="Quarter", axis=alt.Axis(format="%Y Q%q", labelAngle=-45, labelFontSize=10)),
+                            x=alt.X("quarter:T", title="Quarter",
+                                    axis=alt.Axis(format="%Y Q%q", labelAngle=-45, labelFontSize=10)),
                             y=alt.Y(
                                 "total_sales:Q",
                                 title="Total Sales (USD)",
@@ -914,10 +926,26 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
     with ui.nav_panel("AI Query", value="ai"):
         ui.h4("AI Query (GenAI)")
 
-        greeting_path = Path(__file__).with_name("querychat_greeting.md")
-        if greeting_path.exists():
-            ui.markdown(greeting_path.read_text())
-        else:
-            ui.markdown("Greeting file not found: `src/querychat_greeting.md`")
+        with ui.card(full_screen=True, class_="shadow-sm border-0"):
+            ui.card_header("Ask questions in natural language (QueryChat)")
+            qc.ui()
 
-        ui.p("Next step: add QueryChat UI + results table + download button.")
+        with ui.card(full_screen=True, class_="shadow-sm border-0"):
+            ui.card_header("Query Results (filtered table)")
+
+            @render.data_frame
+            def out_querychat_table():
+                df = qc.df()
+                if df is None:
+                    df = pd.DataFrame()
+                # Some backends return non-pandas frames; convert if needed
+                if hasattr(df, "to_pandas"):
+                    df = df.to_pandas()
+                return render.DataGrid(df, summary=False)
+
+        with ui.card(class_="shadow-sm border-0"):
+            ui.card_header("Current SQL (generated)")
+
+            @render.text
+            def out_querychat_sql():
+                return qc.sql() or "No SQL yet — ask a question above."
