@@ -159,17 +159,10 @@ def kpi_metrics() -> dict:
     previous_transactions = int(previous_year_df.shape[0])
 
     sales_by_year = df.groupby("year")["sales"].sum()
-    if (
-        (end_year in sales_by_year.index)
-        and (prev_year in sales_by_year.index)
-        and (sales_by_year.loc[prev_year] != 0)
-    ):
-        yoy_growth_rate = float(
-            (sales_by_year.loc[end_year] - sales_by_year.loc[prev_year])
-            / sales_by_year.loc[prev_year]
-        )
+    if previous_revenue != 0:
+        yoy_growth_rate = (current_revenue - previous_revenue) / previous_revenue
     else:
-        yoy_growth_rate = 0.0
+        yoy_growth_rate = None
 
     if previous_revenue != 0:
         revenue_delta_pct = (current_revenue - previous_revenue) / previous_revenue
