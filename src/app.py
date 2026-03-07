@@ -444,7 +444,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                         ui.tags.div(
                             detail,
                             class_=f"{detail_class} opacity-75",
-                            style="font-size: 0.78rem;",
+                            style="font-size: 0.95rem;",
                         ),
                     ),
                     style="background-color: #003c64; border-color: #003c64;",
