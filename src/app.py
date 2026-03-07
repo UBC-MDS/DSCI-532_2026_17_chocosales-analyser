@@ -986,3 +986,118 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             @render.text
             def out_querychat_sql():
                 return qc.sql() or "No SQL yet — ask a question above."
+            
+        with ui.layout_columns(col_widths=[6, 6]):
+
+            with ui.card(full_screen=True, class_="shadow-sm border-0"):
+                ui.card_header("AI Filtered Sales by Country")
+
+                @render_altair
+                def out_querychat_country_plot():
+                    df = querychat_filtered_df()
+
+                    _empty = (
+                        alt.Chart(pd.DataFrame({"message": ["No QueryChat results available"]}))
+                        .mark_text(color="#6b7280", fontSize=12)
+                        .encode(text="message:N")
+                        .properties(height=260)
+                    )
+
+                    if df.shape[0] == 0:
+                        return _empty
+
+                    if "country" not in df.columns or "sales" not in df.columns:
+                        return (
+                            alt.Chart(
+                                pd.DataFrame(
+                                    {"message": ["Query result must include 'country' and 'sales' columns"]}
+                                )
+                            )
+                            .mark_text(color="#6b7280", fontSize=12)
+                            .encode(text="message:N")
+                            .properties(height=260)
+                        )
+
+                    country_totals = (
+                        df.groupby("country", as_index=False)
+                        .agg(total_sales=("sales", "sum"))
+                        .sort_values("total_sales", ascending=False)
+                    )
+
+                    return (
+                        alt.Chart(country_totals)
+                        .mark_bar(cornerRadiusTopRight=3, cornerRadiusBottomRight=3)
+                        .encode(
+                            y=alt.Y("country:N", sort="-x", title="Country"),
+                            x=alt.X(
+                                "total_sales:Q",
+                                title="Total Sales (USD)",
+                                axis=alt.Axis(format="$,.0f"),
+                            ),
+                            tooltip=[
+                                alt.Tooltip("country:N", title="Country"),
+                                alt.Tooltip("total_sales:Q", title="Total Sales", format="$,.0f"),
+                            ],
+                            color=alt.value("#0072B2"),
+                        )
+                        .properties(height=260, width="container")
+                        .configure_view(strokeOpacity=0)
+                        .configure_axis(gridColor="#e5e7eb")
+                    )
+
+            with ui.card(full_screen=True, class_="shadow-sm border-0"):
+                ui.card_header("AI Filtered Top 5 Products")
+
+                @render_altair
+                def out_querychat_top_products_plot():
+                    df = querychat_filtered_df()
+
+                    _empty = (
+                        alt.Chart(pd.DataFrame({"message": ["No QueryChat results available"]}))
+                        .mark_text(color="#6b7280", fontSize=12)
+                        .encode(text="message:N")
+                        .properties(height=260)
+                    )
+
+                    if df.shape[0] == 0:
+                        return _empty
+
+                    if "product" not in df.columns or "sales" not in df.columns:
+                        return (
+                            alt.Chart(
+                                pd.DataFrame(
+                                    {"message": ["Query result must include 'product' and 'sales' columns"]}
+                                )
+                            )
+                            .mark_text(color="#6b7280", fontSize=12)
+                            .encode(text="message:N")
+                            .properties(height=260)
+                        )
+
+                    top_products = (
+                        df.groupby("product", as_index=False)
+                        .agg(total_sales=("sales", "sum"))
+                        .sort_values("total_sales", ascending=False)
+                        .head(5)
+                    )
+
+                    return (
+                        alt.Chart(top_products)
+                        .mark_bar(cornerRadiusTopRight=3, cornerRadiusBottomRight=3)
+                        .encode(
+                            y=alt.Y("product:N", sort="-x", title=None),
+                            x=alt.X(
+                                "total_sales:Q",
+                                title="Total Sales (USD)",
+                                axis=alt.Axis(format="$,.0f"),
+                            ),
+                            tooltip=[
+                                alt.Tooltip("product:N", title="Product"),
+                                alt.Tooltip("total_sales:Q", title="Total Sales", format="$,.0f"),
+                            ],
+                            color=alt.value("#E69F00"),
+                        )
+                        .properties(height=260, width="container")
+                        .configure_view(strokeOpacity=0)
+                        .configure_axis(gridColor="#e5e7eb")
+                    )
