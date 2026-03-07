@@ -751,8 +751,8 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                             from_=alt.LookupData(sales_by_country, "name", ["total_sales"]),
                         )
                         .encode(
-                            color=alt.Color("total_sales:Q", title="Total sales (USD)"),
-                            scale=alt.Scale(scheme="blues"),
+                            color=alt.Color("total_sales:Q", title="Total sales (USD)",
+                                            scale=alt.Scale(scheme="blues")),
                             tooltip=[
                                 alt.Tooltip("name:N", title="Country"),
                                 alt.Tooltip("total_sales:Q", title="Sales", format="$,.0f"),
