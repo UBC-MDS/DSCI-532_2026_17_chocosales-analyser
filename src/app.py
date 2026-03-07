@@ -32,6 +32,8 @@ from utils.kpi_helpers import (
     format_yoy_tile,
 )
 
+import os
+from dotenv import load_dotenv
 
 # Load the cleaned dataset once when the app starts up.
 # All filtering happens downstream — we never modify this original DataFrame.
@@ -67,11 +69,14 @@ qc_greeting = None
 if QC_GREETING_PATH.exists():
     qc_greeting = QC_GREETING_PATH.read_text(encoding="utf-8")
 
+load_dotenv()
+api_key = os.getenv("GITHUB_TOKEN")
+
 qc = QueryChat(
     qc_sales_df,
     "chocolate_sales",
     greeting=qc_greeting,
-    client=ChatGithub(model="gpt-4.1"),
+    client=ChatGithub(model="gpt-4.1",api_key=api_key),
 )
 
 # Grab today's date once so we can show it in the header and footer
@@ -738,7 +743,18 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                         "07e73f3c2d21558489604a0bc434b3a5cf41a867/world-country-names.tsv"
                     )
 
-                    return (
+                    base_map = (
+                        alt.Chart(countries)
+                        .mark_geoshape(fill="lightgray", stroke="white", strokeWidth=0.2)
+                        .project("equalEarth")
+                        .transform_lookup(
+                            lookup="id",
+                            from_=alt.LookupData(country_names_url, "id", ["name"]),
+                        )
+                        .properties(height=260, width="container")
+                    )
+
+                    sales_map = (
                         alt.Chart(countries)
                         .mark_geoshape(stroke="white", strokeWidth=0.2)
                         .project("equalEarth")
@@ -750,18 +766,30 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                             lookup="name",
                             from_=alt.LookupData(sales_by_country, "name", ["total_sales"]),
                         )
+                        .transform_filter("isValid(datum.total_sales)")
                         .encode(
-                            color=alt.Color("total_sales:Q", title="Total sales (USD)",
-                                            scale=alt.Scale(scheme="blues")),
+                            color=alt.Color(
+                                "total_sales:Q",
+                                title="Total sales (USD)",
+                                scale=alt.Scale(scheme="blues"),
+                            ),
                             tooltip=[
                                 alt.Tooltip("name:N", title="Country"),
                                 alt.Tooltip("total_sales:Q", title="Sales", format="$,.0f"),
                             ],
                         )
                         .properties(height=260, width="container")
-                        .configure_view(strokeOpacity=0)
-                        .configure_mark(invalid="lightgray")
                     )
+
+                    return (
+                        (base_map + sales_map)
+                        .configure_view(strokeOpacity=0)
+                    )
+
+        with ui.layout_columns(col_widths=[6, 6]):
+
+            with ui.card():
+                ui.card_header("Countries Sales Contribution")
 
         # ---------------------------------------------------------------------------
         # Row 2 — summary table on the left, top-5 products chart on the right.
