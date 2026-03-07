@@ -306,6 +306,31 @@ def top5_products_data() -> pd.DataFrame:
 
     return ranked[["product", "total_sales", "avg_transaction", "total_transactions"]]
 
+@reactive.calc
+def querychat_filtered_df() -> pd.DataFrame:
+    """
+    Shared reactive dataframe for all AI Query outputs.
+    Converts QueryChat results to a clean pandas DataFrame.
+    """
+    df = qc.df()
+
+    if df is None:
+        return pd.DataFrame()
+
+    if hasattr(df, "to_pandas"):
+        df = df.to_pandas()
+
+    df = df.copy()
+
+    if "sales" in df.columns and df["sales"].dtype == "object":
+        df["sales"] = (
+            df["sales"]
+            .astype(str)
+            .str.replace(r"[\$,]", "", regex=True)
+            .astype(float)
+        )
+
+    return df
 
 # reset_filters listens for a click on the "Reset Filters" button and puts
 # all four dropdowns back to their default values. Because we use
