@@ -312,7 +312,7 @@ def querychat_filtered_df() -> pd.DataFrame:
     Shared reactive dataframe for all AI Query outputs.
     Converts QueryChat results to a clean pandas DataFrame.
     """
-    df = qc.df()
+    df = querychat_filtered_df()
 
     if df is None:
         return pd.DataFrame()
@@ -963,7 +963,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                 label="Download CSV",
             )
             def download_querychat_data():
-                df = qc.df()
+                df = querychat_filtered_df()
                 if df is None:
                     df = pd.DataFrame()
                 if hasattr(df, "to_pandas"):
@@ -972,7 +972,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
             @render.data_frame
             def out_querychat_table():
-                df = qc.df()
+                df = querychat_filtered_df()
                 if df is None:
                     df = pd.DataFrame()
                 # Some backends return non-pandas frames; convert if needed
