@@ -750,12 +750,9 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                             lookup="name",
                             from_=alt.LookupData(sales_by_country, "name", ["total_sales"]),
                         )
-                        .transform_calculate(
-                            # Countries not present in the filtered data should still render as 0
-                            total_sales="isValid(datum.total_sales) ? datum.total_sales : 0"
-                        )
                         .encode(
                             color=alt.Color("total_sales:Q", title="Total sales (USD)"),
+                            scale=alt.Scale(scheme="blues"),
                             tooltip=[
                                 alt.Tooltip("name:N", title="Country"),
                                 alt.Tooltip("total_sales:Q", title="Sales", format="$,.0f"),
@@ -763,6 +760,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                         )
                         .properties(height=260, width="container")
                         .configure_view(strokeOpacity=0)
+                        .configure_mark(invalid="lightgray")
                     )
 
         # ---------------------------------------------------------------------------
