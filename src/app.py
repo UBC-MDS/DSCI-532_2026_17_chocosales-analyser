@@ -353,7 +353,7 @@ def reset_filters():
 # ---------------------------------------------------------------------------
 
 # fillable=True lets the page expand to fill the full browser height.
-ui.page_opts(title="ChocoSales Analyser", fillable=True)
+ui.page_opts(title="ChocoSales Analyser")
 
 # Sidebar is open by default on desktop and collapses on mobile.
 # Every dropdown here feeds directly into filtered_sales().
