@@ -312,7 +312,7 @@ def querychat_filtered_df() -> pd.DataFrame:
     Shared reactive dataframe for all AI Query outputs.
     Converts QueryChat results to a clean pandas DataFrame.
     """
-    df = querychat_filtered_df()
+    df = qc.df()
 
     if df is None:
         return pd.DataFrame()
