@@ -11,9 +11,20 @@ All notable changes to this project will be documented in this file.
 - A table to show the QueryChat filtered dataframe
 - A text output to show the generated SQL
 - A CSV download for the current QueryChat filtered dataframe
+- A shared reactive calc querychat_filtered_df() to standardize QueryChat result handling
+- Two new visual outputs based on the QueryChat filtered dataframe:
+  - out_querychat_country_plot: AI-filtered sales by country
+  - out_querychat_top_products_plot: AI-filtered top 5 products
+
 
 ### Changed
--
+- Improved KPI detail text formatting and readability on row-1 cards.
+- Adjusted app layout spacing/fill behavior for a cleaner dashboard presentation.
+- Updated map rendering behavior for unsupported/invalid countries (shown as neutral/grey).
+- Increased card typography/sizing for better visual hierarchy.
+- Updated the AI table download and dataframe output to use querychat_filtered_df().
+
+
 
 ### Fixed
 - 
