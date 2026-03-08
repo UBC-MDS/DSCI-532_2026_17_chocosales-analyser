@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## [0.3.0] - 2026-03-28
+
+### Added
+- An AI Query tab
+- QueryChat so users can ask questions in natural language and onfigured QueryChat to use GitHub Models
+- A table to show the QueryChat filtered dataframe
+- A text output to show the generated SQL
+- A CSV download for the current QueryChat filtered dataframe
+
+### Changed
+-
+
+### Fixed
+- 
+
+### Known Issues
+- No known issues at the time of release.
+
+### Reflection
+- 
+
 ## [0.2.0] - 2026-02-28
 
 ### Added
