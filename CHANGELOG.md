@@ -27,7 +27,11 @@ All notable changes to this project will be documented in this file.
 
 
 ### Fixed
-- 
+- Removed fillable=True from ui.page_opts() to move away from the page-fillable layout and better align with instructor feedback.
+- Updated YoY KPI logic in kpi_metrics() so the YoY card uses the previous year as the baseline and returns None when no valid baseline is available.
+- Updated the country map so countries with no matching sales data are no longer forced to zero values.
+- Fixed the percentage for the KPI card details YoY statistics card.
+- Fixed minor typos across UI text and code comments.
 
 ### Known Issues
 - No known issues at the time of release.
