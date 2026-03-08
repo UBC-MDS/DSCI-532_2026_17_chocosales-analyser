@@ -34,14 +34,14 @@ def format_delta_detail(
     # Positive change: up arrow + green text.
     if delta > 0:
         return (
-            f"vs {prev_year} ▲ {delta * 100:.0f}%",
+            f"vs {prev_year} ▲ {delta * 100:.1f}%",
             f"{base_class} text-success",
         )
 
     # Negative change: down arrow + red text.
     if delta < 0:
         return (
-            f"vs {prev_year} ▼ {abs(delta) * 100:.0f}%",
+            f"vs {prev_year} ▼ {abs(delta) * 100:.1f}%",
             f"{base_class} text-danger",
         )
 
@@ -69,7 +69,7 @@ def format_delta_detail_with_value(
     display_current_year = (
         current_year if current_year is not None else prev_year + 1
     )
-    pct_text = f"{abs(delta) * 100:.0f}%"
+    pct_text = f"{abs(delta) * 100:.1f}%"
 
     if delta > 0:
         return (
