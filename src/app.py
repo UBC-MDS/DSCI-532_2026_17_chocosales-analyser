@@ -15,17 +15,22 @@
 
 from datetime import date
 from pathlib import Path
-
+import sys
 import altair as alt         # all charts are built with Altair
 import pandas as pd
 from shiny import reactive
-from shiny.express import input, render, ui   # Express mode — no explicit App() needed
+from shiny.express import input, render, ui   # Express mode - no explicit App() needed
 from shinywidgets import render_altair        # lets us drop Altair charts into Shiny outputs
 from querychat.express import QueryChat
 from chatlas import ChatGithub
 from vega_datasets import data as vega_data  # provides the world map TopoJSON for the choropleth
 
-# our own helpers — filter_sales does the row filtering, kpi_helpers formats the tile text
+# for making dashboard running locally in right path
+SRC_DIR = Path(__file__).resolve().parent
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+# our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
 from utils.filter_sales import filter_sales
 from utils.kpi_helpers import (
     format_delta_detail_with_value,
@@ -36,7 +41,7 @@ import os
 from dotenv import load_dotenv
 
 # Load the cleaned dataset once when the app starts up.
-# All filtering happens downstream — we never modify this original DataFrame.
+# All filtering happens downstream - we never modify this original DataFrame.
 DATA_PATH = (
     Path(__file__).resolve().parents[1]
     / "data"
@@ -47,7 +52,7 @@ sales_df = pd.read_csv(DATA_PATH)
 sales_df["year"] = sales_df["year"].astype(int)  # make year an int so filter comparisons work cleanly
 
 # ---------------------------------------------------------------------------
-# QueryChat (GenAI) setup — separate from the dashboard filters.
+# QueryChat (GenAI) setup - separate from the dashboard filters.
 # ---------------------------------------------------------------------------
 
 QC_GREETING_PATH = (
@@ -72,18 +77,34 @@ if QC_GREETING_PATH.exists():
 load_dotenv()
 api_key = os.getenv("GITHUB_TOKEN")
 
-qc = QueryChat(
-    qc_sales_df,
-    "chocolate_sales",
-    greeting=qc_greeting,
-    client=ChatGithub(model="gpt-4.1",api_key=api_key),
-)
+qc = None
+qc_available = False
+qc_error_message = None
+
+if api_key:
+    try:
+        qc = QueryChat(
+            qc_sales_df,
+            "chocolate_sales",
+            greeting=qc_greeting,
+            client=ChatGithub(model="gpt-4.1", api_key=api_key),
+        )
+        qc_available = True
+    except Exception as e:
+        qc = None
+        qc_available = False
+        qc_error_message = f"Failed to initialize QueryChat: {e}"
+else:
+    qc_error_message = (
+        "GITHUB_TOKEN is not configured, so the AI Query feature is disabled "
+        "in this environment."
+    )
 
 # Grab today's date once so we can show it in the header and footer
 _last_updated = date.today().strftime("%B %d, %Y")
 
 # ---------------------------------------------------------------------------
-# Reactive calculations — these are the engine behind the dashboard.
+# Reactive calculations - these are the engine behind the dashboard.
 # Shiny re-runs each one automatically whenever the inputs it reads change.
 # ---------------------------------------------------------------------------
 
@@ -126,7 +147,7 @@ def kpi_metrics() -> dict:
             "prev_year": int(input.end_year()) - 1,
         }
 
-    # The sales column occasionally arrives as a string like "$1,200" —
+    # The sales column occasionally arrives as a string like "$1,200" -
     # strip the dollar sign and commas before doing any arithmetic.
     if df["sales"].dtype == "object":
         df["sales"] = (
@@ -310,6 +331,8 @@ def querychat_filtered_df() -> pd.DataFrame:
     Shared reactive dataframe for all AI Query outputs.
     Converts QueryChat results to a clean pandas DataFrame.
     """
+    if qc is None:
+        return pd.DataFrame()
     df = qc.df()
 
     if df is None:
@@ -332,7 +355,7 @@ def querychat_filtered_df() -> pd.DataFrame:
 
 # reset_filters listens for a click on the "Reset Filters" button and puts
 # all four dropdowns back to their default values. Because we use
-# @reactive.event, this function only runs on an explicit button click —
+# @reactive.event, this function only runs on an explicit button click -
 # it won't fire just because the app loads. Updating the dropdowns
 # automatically triggers filtered_sales() to rerun, so every chart refreshes.
 @reactive.effect
@@ -346,7 +369,7 @@ def reset_filters():
 
 
 # ---------------------------------------------------------------------------
-# UI — everything below defines what the user actually sees.
+# UI - everything below defines what the user actually sees.
 # Shiny Express uses indented `with` blocks instead of nested function calls.
 # ---------------------------------------------------------------------------
 
@@ -388,7 +411,7 @@ with ui.sidebar(title="Filters", open="desktop"):
         class_="btn btn-outline-secondary btn-sm w-100 mt-2",
     )
 
-    # out_active_filter_state — shows a live plain-text summary of whichever
+    # out_active_filter_state - shows a live plain-text summary of whichever
     # filters are currently active so the user always knows what they're looking at.
     @render.text
     def out_active_filter_state():
@@ -419,7 +442,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                 class_="text-end small pt-0"
             )
 
-        # Four KPI value boxes in a single row — all read from kpi_metrics() so the
+        # Four KPI value boxes in a single row - all read from kpi_metrics() so the
         # numbers are computed once and shared, not recalculated four separate times.
         with ui.layout_columns(
             col_widths=[3, 3, 3, 3],
@@ -545,14 +568,14 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                 )
 
         # ---------------------------------------------------------------------------
-        # Row 1 — three equal-width chart cards.
+        # Row 1 - three equal-width chart cards.
         # full_screen=True adds the little expand icon in the top-right corner.
         # All charts use width='container' so they fill the card, and height=260
         # so the row stays visually balanced.
         # ---------------------------------------------------------------------------
         with ui.layout_columns(col_widths=[4, 4, 4], fill=True):
 
-            # Horizontal bar chart — one bar per country showing % sales change
+            # Horizontal bar chart - one bar per country showing % sales change
             # between start_year and end_year. Blue = growth, orange = decline.
             # A thin vertical line at 0 makes it easy to read positive vs negative.
             with ui.card(full_screen=True, class_="shadow-sm border-0"):
@@ -581,7 +604,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                             y=alt.Y("country:N", sort="-x", title="Country"),
                             x=alt.X(
                                 "pct_change:Q",
-                                title=f"Percent change in sales (%) — {end_year} vs {prev_year}",
+                                title=f"Percent change in sales (%) - {end_year} vs {prev_year}",
                             ),
                             color=alt.condition(
                                 alt.datum.pct_change >= 0,
@@ -792,7 +815,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                 ui.card_header("Countries Sales Contribution")
 
         # ---------------------------------------------------------------------------
-        # Row 2 — summary table on the left, top-5 products chart on the right.
+        # Row 2 - summary table on the left, top-5 products chart on the right.
         # ---------------------------------------------------------------------------
         with ui.layout_columns(col_widths=[6, 6]):
 
@@ -937,7 +960,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                     ui.tags.div(
                         ui.tags.div(
                             ui.tags.strong("ChocoSales Analyser"),
-                            " — Interactive dashboard for exploring chocolate sales performance "
+                            " - Interactive dashboard for exploring chocolate sales performance "
                             "across countries, products, and time periods.",
                             class_="mb-1",
                         ),
@@ -972,7 +995,18 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
-            qc.ui()
+            if qc_available and qc is not None:
+                qc.ui()
+            else:
+                ui.markdown(
+                    f"""
+                **AI Query is currently unavailable.**
+
+                {qc_error_message}
+
+                The rest of the dashboard is still available.
+                """
+            )
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Query Results (filtered table)")
@@ -1004,7 +1038,9 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
             @render.text
             def out_querychat_sql():
-                return qc.sql() or "No SQL yet — ask a question above."
+                if qc is None:
+                    return "AI Query unavailable - no SQL can be generated in this environment."
+                return qc.sql() or "No SQL yet - ask a question above."
             
         with ui.layout_columns(col_widths=[6, 6]):
 
