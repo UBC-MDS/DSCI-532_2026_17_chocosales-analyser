@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## [0.3.0] - 2026-03-28
+## [0.3.0] - 2026-03-08
 
 ### Added
 - An AI Query tab
@@ -29,13 +29,14 @@ All notable changes to this project will be documented in this file.
 - Updated the country map so countries with no matching sales data are no longer forced to zero values.
 - Fixed the percentage for the KPI card details YoY statistics card.
 - Fixed minor typos across UI text and code comments.
+- Fix token and coding save error to make the local path align well with the cloud, and both run successfully.
 
 ### Known Issues
 - No known issues at the time of release.
 
 ### Reflection
 - In v0.3.0, we expanded the dashboard by adding an AI Query workflow where users can ask natural-language questions and see the generated filtered results.
-- This release improved usability by standardizing QueryChat result handling with querychat_filtered_df().
+- This release improved usability by standardizing QueryChat result handling with querychat_filtered_df(), which reduced duplicated logic and made table, download, and chart outputs more consistent.
 - We improved visual clarity in the dashboard through typography and spacing updates, and refined KPI detail text so year-over-year context is easier to read.
 - We also strengthened robustness by fixing YoY baseline logic and improving map behavior for unmatched countries, which reduced confusing or misleading displays.
 - Overall, v0.3.0 moves the project closer to decision-support use cases by combining interactive visual analytics with conversational querying, while keeping the pipeline more maintainable.
