@@ -38,7 +38,7 @@ git clone https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser.git
 cd DSCI-532_2026_17_chocosales-analyser/
 ```
 
-### Create `.env` File and Add you Github token
+### Create `.env` File and Add your Github token
 
 Create a `.env` file in the project root directory and add your GitHub token in that file, do not push it:
 
