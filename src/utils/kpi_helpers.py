@@ -31,17 +31,17 @@ def format_delta_detail(
 
     if delta > 0:
         return (
-            f"vs pre year ▲ {delta * 100:.0f}%",
+            f"vs {prev_year} ▲ {delta * 100:.0f}%",
             f"{base_class} text-success",
         )
 
     if delta < 0:
         return (
-            f"vs pre year ▼ {abs(delta) * 100:.0f}%",
+            f"vs {prev_year} ▼ {abs(delta) * 100:.0f}%",
             f"{base_class} text-danger",
         )
 
-    return "vs pre year 0%", f"{base_class} text-white-50"
+    return f"vs {prev_year} 0%", f"{base_class} text-white-50"
 
 
 def format_delta_detail_with_value(
@@ -54,25 +54,25 @@ def format_delta_detail_with_value(
     base_class = "small mt-1 text-center d-block text-nowrap"
 
     if delta is None or prev_value is None:
-        return "vs pre year N/A", f"{base_class} text-white-50"
+        return f"vs {prev_year} N/A", f"{base_class} text-white-50"
 
     value_text = f"{value_prefix}{prev_value:,.2f}"
     pct_text = f"{abs(delta) * 100:.0f}%"
 
     if delta > 0:
         return (
-            f"vs pre year ▲ {value_text} ({pct_text})",
+            f"vs {prev_year} ▲ {value_text} ({pct_text})",
             f"{base_class} text-success",
         )
 
     if delta < 0:
         return (
-            f"vs pre year ▼ {value_text} ({pct_text})",
+            f"vs {prev_year} ▼ {value_text} ({pct_text})",
             f"{base_class} text-danger",
         )
 
     return (
-        f"vs pre year {value_text} (0%)",
+        f"vs {prev_year} {value_text} (0%)",
         f"{base_class} text-white-50",
     )
 
@@ -92,7 +92,7 @@ def format_yoy_tile(
     if yoy_value is None:
         return (
             "N/A",
-            "vs pre year N/A",
+            f"vs {prev_year} N/A",
             "small mt-1 text-center d-block text-white-50 text-nowrap",
             "text-white-50",
         )
