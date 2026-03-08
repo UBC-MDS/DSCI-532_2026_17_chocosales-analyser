@@ -15,7 +15,7 @@
 
 from datetime import date
 from pathlib import Path
-
+import sys
 import altair as alt         # all charts are built with Altair
 import pandas as pd
 from shiny import reactive
@@ -24,6 +24,11 @@ from shinywidgets import render_altair        # lets us drop Altair charts into 
 from querychat.express import QueryChat
 from chatlas import ChatGithub
 from vega_datasets import data as vega_data  # provides the world map TopoJSON for the choropleth
+
+# for making dashboard running locally in right path
+SRC_DIR = Path(__file__).resolve().parent
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 # our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
 from utils.filter_sales import filter_sales
@@ -326,6 +331,8 @@ def querychat_filtered_df() -> pd.DataFrame:
     Shared reactive dataframe for all AI Query outputs.
     Converts QueryChat results to a clean pandas DataFrame.
     """
+    if qc is None:
+        return pd.DataFrame()
     df = qc.df()
 
     if df is None:
@@ -988,7 +995,18 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
-            qc.ui()
+            if qc_available and qc is not None:
+                qc.ui()
+            else:
+                ui.markdown(
+                    f"""
+                **AI Query is currently unavailable.**
+
+                {qc_error_message}
+
+                The rest of the dashboard is still available.
+                """
+            )
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Query Results (filtered table)")
@@ -1020,6 +1038,8 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
             @render.text
             def out_querychat_sql():
+                if qc is None:
+                    return "AI Query unavailable - no SQL can be generated in this environment."
                 return qc.sql() or "No SQL yet - ask a question above."
             
         with ui.layout_columns(col_widths=[6, 6]):
