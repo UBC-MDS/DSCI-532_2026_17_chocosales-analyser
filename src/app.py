@@ -72,12 +72,28 @@ if QC_GREETING_PATH.exists():
 load_dotenv()
 api_key = os.getenv("GITHUB_TOKEN")
 
-qc = QueryChat(
-    qc_sales_df,
-    "chocolate_sales",
-    greeting=qc_greeting,
-    client=ChatGithub(model="gpt-4.1",api_key=api_key),
-)
+qc = None
+qc_available = False
+qc_error_message = None
+
+if api_key:
+    try:
+        qc = QueryChat(
+            qc_sales_df,
+            "chocolate_sales",
+            greeting=qc_greeting,
+            client=ChatGithub(model="gpt-4.1", api_key=api_key),
+        )
+        qc_available = True
+    except Exception as e:
+        qc = None
+        qc_available = False
+        qc_error_message = f"Failed to initialize QueryChat: {e}"
+else:
+    qc_error_message = (
+        "GITHUB_TOKEN is not configured, so the AI Query feature is disabled "
+        "in this environment."
+    )
 
 # Grab today's date once so we can show it in the header and footer
 _last_updated = date.today().strftime("%B %d, %Y")
