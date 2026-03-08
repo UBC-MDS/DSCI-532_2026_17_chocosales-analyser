@@ -29,11 +29,21 @@ Below is a short demo of the dashboard in action:
 
 ## Get Started
 
+### Clone the Repository
+
 Clone the repo and follow the steps below to run the dashboard locally:
 
 ```bash
 git clone https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser.git
 cd DSCI-532_2026_17_chocosales-analyser/
+```
+
+### Create `.env` File and Add you Github token
+
+Create a `.env` file in the project root directory and add your GitHub token in that file, do not push it:
+
+```bash
+GITHUB_TOKEN="your_github_token_here"
 ```
 
 ### Create the Conda Environment
