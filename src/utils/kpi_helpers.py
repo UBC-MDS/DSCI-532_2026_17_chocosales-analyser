@@ -24,24 +24,29 @@ def format_delta_detail(
         1. Human-readable comparison text with arrow indicators.
         2. Bootstrap class string for color/styling.
     """
+    # Shared text styling for the small detail line shown under each KPI value.
     base_class = "small mt-1 text-center d-block text-nowrap"
 
+    # If we can't compute the change, show a neutral fallback message.
     if delta is None:
         return na_text, f"{base_class} text-white-50"
 
+    # Positive change: up arrow + green text.
     if delta > 0:
         return (
-            f"vs pre year ▲ {delta * 100:.0f}%",
+            f"vs {prev_year} ▲ {delta * 100:.1f}%",
             f"{base_class} text-success",
         )
 
+    # Negative change: down arrow + red text.
     if delta < 0:
         return (
-            f"vs pre year ▼ {abs(delta) * 100:.0f}%",
+            f"vs {prev_year} ▼ {abs(delta) * 100:.1f}%",
             f"{base_class} text-danger",
         )
 
-    return "vs pre year 0%", f"{base_class} text-white-50"
+    # Exactly no change: keep it neutral.
+    return f"vs {prev_year} 0%", f"{base_class} text-white-50"
 
 
 def format_delta_detail_with_value(
@@ -49,30 +54,37 @@ def format_delta_detail_with_value(
     prev_year: int,
     prev_value: float | int | None,
     value_prefix: str = "",
+    current_year: int | None = None,
+    current_value: float | int | None = None,
 ) -> tuple[str, str]:
-    """Format delta line as: vs {year}: ↑ {value} ({pct}%)."""
+    """Format KPI delta as 'current_year vs prev_year (trend %)' text."""
+    # Same base style, with color appended per trend direction.
     base_class = "small mt-1 text-center d-block text-nowrap"
 
+    # No comparison available if either the delta or previous value is missing.
     if delta is None or prev_value is None:
-        return "vs pre year N/A", f"{base_class} text-white-50"
+        return f"vs {prev_year} N/A", f"{base_class} text-white-50"
 
-    value_text = f"{value_prefix}{prev_value:,.2f}"
-    pct_text = f"{abs(delta) * 100:.0f}%"
+    # Use provided current_year when available; otherwise infer from prev_year.
+    display_current_year = (
+        current_year if current_year is not None else prev_year + 1
+    )
+    pct_text = f"{abs(delta) * 100:.1f}%"
 
     if delta > 0:
         return (
-            f"vs pre year ▲ {value_text} ({pct_text})",
+            f"{display_current_year} vs {prev_year} (▲ {pct_text})",
             f"{base_class} text-success",
         )
 
     if delta < 0:
         return (
-            f"vs pre year ▼ {value_text} ({pct_text})",
+            f"{display_current_year} vs {prev_year} (▼ {pct_text})",
             f"{base_class} text-danger",
         )
 
     return (
-        f"vs pre year {value_text} (0%)",
+        f"{display_current_year} vs {prev_year} (0%)",
         f"{base_class} text-white-50",
     )
 
@@ -81,6 +93,9 @@ def format_yoy_tile(
     yoy_value: float | None,
     prev_year: int,
     prev_value: float | int | None,
+    current_year: int | None = None,
+    current_value: float | int | None = None,
+    value_prefix: str = "",
 ) -> tuple[str, str, str, str]:
     """Format YoY KPI text and Bootstrap classes for tile display.
 
@@ -89,19 +104,26 @@ def format_yoy_tile(
     tuple[str, str, str, str]
         main_text, detail_text, detail_class, main_text_class
     """
+    # If YoY itself is unavailable, keep both text and color neutral.
     if yoy_value is None:
         return (
             "N/A",
-            "vs pre year N/A",
+            f"vs {prev_year} N/A",
             "small mt-1 text-center d-block text-white-50 text-nowrap",
             "text-white-50",
         )
 
+    # Reuse the shared formatter so all KPI cards speak the same language.
     detail_text, detail_class = format_delta_detail_with_value(
         delta=yoy_value,
         prev_year=prev_year,
         prev_value=prev_value,
+        value_prefix=value_prefix,
+        current_year=current_year,
+        current_value=current_value,
     )
+
+    # Main YoY number color mirrors the trend direction.
     if yoy_value > 0:
         main_text_class = "text-success"
     elif yoy_value < 0:
@@ -109,4 +131,9 @@ def format_yoy_tile(
     else:
         main_text_class = "text-white-50"
 
-    return f"{yoy_value * 100:,.1f}%", detail_text, detail_class, main_text_class
+    return (
+        f"{yoy_value * 100:,.1f}%",
+        detail_text,
+        detail_class,
+        main_text_class,
+    )
