@@ -16,15 +16,12 @@ All notable changes to this project will be documented in this file.
   - out_querychat_country_plot: AI-filtered sales by country
   - out_querychat_top_products_plot: AI-filtered top 5 products
 
-
 ### Changed
 - Improved KPI detail text formatting and readability on row-1 cards.
 - Adjusted app layout spacing/fill behavior for a cleaner dashboard presentation.
 - Updated map rendering behavior for unsupported/invalid countries (shown as neutral/grey).
 - Increased card typography/sizing for better visual hierarchy.
 - Updated the AI table download and dataframe output to use querychat_filtered_df().
-
-
 
 ### Fixed
 - Removed fillable=True from ui.page_opts() to move away from the page-fillable layout and better align with instructor feedback.
@@ -37,7 +34,11 @@ All notable changes to this project will be documented in this file.
 - No known issues at the time of release.
 
 ### Reflection
-- 
+- In v0.3.0, we expanded the dashboard by adding an AI Query workflow where users can ask natural-language questions and see the generated filtered results.
+- This release improved usability by standardizing QueryChat result handling with querychat_filtered_df().
+- We improved visual clarity in the dashboard through typography and spacing updates, and refined KPI detail text so year-over-year context is easier to read.
+- We also strengthened robustness by fixing YoY baseline logic and improving map behavior for unmatched countries, which reduced confusing or misleading displays.
+- Overall, v0.3.0 moves the project closer to decision-support use cases by combining interactive visual analytics with conversational querying, while keeping the pipeline more maintainable.
 
 ## [0.2.0] - 2026-02-28
 
