@@ -31,7 +31,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 # our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
-from utils.lazy_data import get_filter_choices, filter_sales_lazy
+from utils.lazy_data import get_filter_choices, filter_sales_lazy, get_full_sales_df
 from utils.kpi_helpers import (
     format_delta_detail_with_value,
     format_yoy_tile,
@@ -58,7 +58,7 @@ QC_GREETING_PATH = (
     Path(__file__).resolve().parents[1] / "reports" / "querychat_greeting.md"
 )
 
-qc_sales_df = sales_df.copy()
+qc_sales_df = get_full_sales_df().copy()
 
 # Ensure numeric sales for QueryChat (so SUM/AVG works in SQL)
 if qc_sales_df["sales"].dtype == "object":
