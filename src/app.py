@@ -375,31 +375,31 @@ def reset_filters():
 ui.page_opts(title="ChocoSales Analyser")
 
 # Sidebar is open by default on desktop and collapses on mobile.
-# Every dropdown here feeds directly into filtered_sales().
+# Every dropdown here feeds directly into filtered_sales_lazy().
 with ui.sidebar(title="Filters", open="desktop"):
     with ui.layout_columns(col_widths=[5, 5]):
         ui.input_select(
             "start_year",
             "Start Year",
-            choices=["2022", "2023", "2024"],
-            selected="2022"
+            choices=YEAR_CHOICES,
+            selected=YEAR_CHOICES[0]
         )
         ui.input_select(
             "end_year",
             "End Year",
-            choices=["2022", "2023", "2024"],
-            selected="2024"
+            choices=YEAR_CHOICES,
+            selected=YEAR_CHOICES[-1]
         )
     ui.input_select(
         "country",
         "Country",
-        choices=["All"] + sorted(sales_df["country"].dropna().unique().tolist()),
+        choices=["All"] + country_choices,
         selected="All"
     )
     ui.input_select(
         "product",
         "Product Category",
-        choices=["All"] + sorted(sales_df["product"].dropna().unique().tolist()),
+        choices=["All"] + product_choices,
         selected="All"
     )
     ui.input_action_button(
