@@ -40,16 +40,15 @@ from utils.kpi_helpers import (
 import os
 from dotenv import load_dotenv
 
-# Load the cleaned dataset once when the app starts up.
-# All filtering happens downstream - we never modify this original DataFrame.
-DATA_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "data"
-    / "processed"
-    / "chocolate_sales_clean.csv"
-)
-sales_df = pd.read_csv(DATA_PATH)
-sales_df["year"] = sales_df["year"].astype(int)  # make year an int so filter comparisons work cleanly
+# Load distinct filter choices from parquet via ibis + DuckDB.
+# This only pulls a small metadata table into memory for UI controls.
+choices_df = get_filter_choices()
+
+year_choices = sorted(choices_df["year"].dropna().astype(int).unique().tolist())
+country_choices = sorted(choices_df["country"].dropna().unique().tolist())
+product_choices = sorted(choices_df["product"].dropna().unique().tolist())
+
+YEAR_CHOICES = [str(y) for y in year_choices]
 
 # ---------------------------------------------------------------------------
 # QueryChat (GenAI) setup - separate from the dashboard filters.
