@@ -355,13 +355,12 @@ def querychat_filtered_df() -> pd.DataFrame:
 # all four dropdowns back to their default values. Because we use
 # @reactive.event, this function only runs on an explicit button click -
 # it won't fire just because the app loads. Updating the dropdowns
-# automatically triggers filtered_sales() to rerun, so every chart refreshes.
+# automatically triggers filtered_sales_lazy() to rerun, so every chart refreshes.
 @reactive.effect
 @reactive.event(input.reset_filters)
 def reset_filters():
-    year_choices = ["2022", "2023", "2024"]
-    ui.update_select("start_year", selected=year_choices[0])  # back to the earliest year
-    ui.update_select("end_year", selected=year_choices[-1])   # back to the latest year
+    ui.update_select("start_year", selected=YEAR_CHOICES[0])  # back to the earliest year
+    ui.update_select("end_year", selected=YEAR_CHOICES[-1])   # back to the latest year
     ui.update_select("country", selected="All")               # show all countries
     ui.update_select("product", selected="All")               # show all products
 
