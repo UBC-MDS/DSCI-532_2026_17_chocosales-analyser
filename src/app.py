@@ -31,7 +31,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 # our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
-from utils.filter_sales import filter_sales
+from utils.lazy_data import get_filter_choices, filter_sales_lazy
 from utils.kpi_helpers import (
     format_delta_detail_with_value,
     format_yoy_tile,
