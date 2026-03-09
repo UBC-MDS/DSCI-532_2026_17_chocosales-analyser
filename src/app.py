@@ -112,10 +112,9 @@ _last_updated = date.today().strftime("%B %d, %Y")
 # automatically flows through to every visible element.
 @reactive.calc
 def filtered_sales() -> pd.DataFrame:
-    return filter_sales(
-        sales_df=sales_df,
-        start_year=input.start_year(),
-        end_year=input.end_year(),
+    return filter_sales_lazy(
+        start_year=int(input.start_year()),
+        end_year=int(input.end_year()),
         country=input.country(),
         product=input.product(),
     )
