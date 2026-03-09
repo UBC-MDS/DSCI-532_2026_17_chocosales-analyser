@@ -72,3 +72,11 @@ def filter_sales_lazy(
         expr = expr.filter(_.product == product)
 
     return expr.execute()
+
+def get_full_sales_df() -> pd.DataFrame:
+    """
+    Load the full processed dataset from parquet via ibis + DuckDB.
+    This is used for QueryChat, which expects a pandas DataFrame.
+    """
+    t = get_sales_table()
+    return t.execute()
