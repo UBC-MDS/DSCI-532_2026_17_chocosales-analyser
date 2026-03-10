@@ -2,6 +2,10 @@
 
 > Team note:this spec is a living document.please update the Status column (✅ / 🔄 Revised / ⏳ Pending M2 / ⏳ Pending M3) as we finalize scope and implement features,fill sections 2.2-2.4 based on the final M2 prototype.
 
+## M4 Backend Update Summary
+
+For Milestone 4, we updated the dashboard data backend from eager CSV loading in pandas to lazy loading using parquet + DuckDB through ibis. This change preserves the user-facing dashboard behavior while improving scalability and aligning the reactive filtering pipeline with production-style query execution. Input choices are now initialized from distinct metadata queried from parquet, and `filtered_sales` applies all filter conditions before materializing the result as a pandas DataFrame.
+
 ## 2.1 Updated Job Stories
 
 > Status values may be adjusted after we finalize M2 MVP vs M3 stretch scope.
