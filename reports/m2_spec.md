@@ -51,7 +51,7 @@ For Milestone 4, we updated the dashboard data backend from eager CSV loading in
 ```mermaid
 flowchart TD
   %% Inputs
-  SY[/input_start_year/] --> FS{{filtered_sales}}
+  SY[/input_start_year/] --> FS{{filtered_sales(calls DuckDB/ibis lazy query)}}
   EY[/input_end_year/] --> FS
   C[/input_country/] --> FS
   P[/input_product/] --> FS
