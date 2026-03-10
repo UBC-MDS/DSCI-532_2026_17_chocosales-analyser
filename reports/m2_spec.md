@@ -42,6 +42,9 @@ For Milestone 4, we updated the dashboard data backend from eager CSV loading in
 | out_top5_products_plot | Output | @render.altair | top5_products_data | #2 |
 | out_active_filter_state | Output | @render.altair| input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
 | out_app_footer | Output | @render.ui | filtered_sales | #1, #2, #3, #4 |
+| get_filter_choices | Data access helper | ibis + DuckDB query | processed parquet | #1, #2 |
+| filter_sales_lazy | Data access helper | ibis + DuckDB query + `.execute()` | `start_year, end_year, country, product` | #1, #2, #3 |
+| get_full_sales_df | Data access helper | ibis + DuckDB query + `.execute()` | processed parquet | AI tab support |
 
 ## 2.3 Reactivity Diagram
 
