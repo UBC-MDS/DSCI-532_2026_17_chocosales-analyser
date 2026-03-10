@@ -93,16 +93,20 @@ flowchart TD
 - **Depends on:** `input_start_year`, `input_end_year`, `input_country`, `input_product`
 - **What it does (transformation):**
 
-1. Loads the cleaned sales dataset (e.g., from `data/raw/chocolate-sales.csv`).  
-2. Filters rows to the selected year range (`start_year` to `end_year`).  
-3. Applies optional filters for `country` and `product` (e.g., "All" = no filter).  
-4. Returns the filtered DataFrame used across the app as the single source of truth.
+1. Reads user-selected filter values from the Shiny inputs.  
+2. Calls a lazy data-access helper (`filter_sales_lazy`) backed by **ibis + DuckDB** over the processed **parquet** dataset. 
+3. Applies year, country, and product filtering at the database/query layer **before** materializing results into memory.  
+4. Executes the filtered query and returns only the matching rows as a pandas DataFrame for downstream plots, tables, and KPI calculations.
+
+- **Why this changed in M4:**
+
+To improve scalability and align with production-style data workflows, M4 switches the dashboard from eager CSV loading in pandas to lazy loading with parquet + DuckDB. This keeps filtering outside pandas until the final query result is needed.
 
 - **Consumed by outputs / downstream calcs:**
 
 1. **Direct outputs:** `out_sales_trend_plot`, `out_country_map`, `out_country_contrib_table`
 2. **Additional output:** `out_app_footer`
-3. **Downstream calcs:** `g`, `yoy_by_country`, `top5_products_data`
+3. **Downstream calcs:** `kpi_metrics`, `yoy_by_country`, `top5_products_data`
 
 ### `kpi_metrics` (@reactive.calc)
 
