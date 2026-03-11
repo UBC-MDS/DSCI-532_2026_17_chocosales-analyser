@@ -19,3 +19,4 @@ dependencies:
   - querychat
   - chatlas
   - ibis-framework[duckdb]
+  - python-dotenv
