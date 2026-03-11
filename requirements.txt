@@ -1,5 +1,5 @@
-shiny==1.5.1
-pandas==3.0.0
+shiny==1.4.0
+pandas>=2.2,<3
 altair==6.0.0
 shinywidgets==0.7.1
 anywidget==0.9.21
