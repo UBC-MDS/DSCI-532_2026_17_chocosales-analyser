@@ -102,7 +102,7 @@ if api_key:
             "chocolate_sales",
             greeting=qc_greeting,
             data_description=qc_data_description,
-            data_description=qc_data_description,
+            extra_instructions=qc_extra_instructions,
             client=ChatGithub(model="gpt-4.1", api_key=api_key),
         )
         qc_available = True
