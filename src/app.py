@@ -988,18 +988,26 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
-            if qc_available and qc is not None:
-                qc.ui()
-            else:
-                ui.markdown(
-                    f"""
-                **AI Query is currently unavailable.**
-
-                {qc_error_message}
-
-                The rest of the dashboard is still available.
+            
+            with ui.tags.div(
+                style="""
+                    height: 520px;
+                    overflow-y: auto;
+                    padding-right: 0.25rem;
                 """
-            )
+            ):
+                if qc_available and qc is not None:
+                    qc.ui()
+                else:
+                    ui.markdown(
+                        f"""
+                    **AI Query is currently unavailable.**
+
+                    {qc_error_message}
+
+                    The rest of the dashboard is still available.
+                    """
+                    )
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Query Results (filtered table)")
