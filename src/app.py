@@ -31,7 +31,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 # our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
-from utils.filter_sales import filter_sales
+from utils.lazy_data import get_filter_choices, filter_sales_lazy, get_full_sales_df
 from utils.kpi_helpers import (
     format_delta_detail_with_value,
     format_yoy_tile,
@@ -40,16 +40,15 @@ from utils.kpi_helpers import (
 import os
 from dotenv import load_dotenv
 
-# Load the cleaned dataset once when the app starts up.
-# All filtering happens downstream - we never modify this original DataFrame.
-DATA_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "data"
-    / "processed"
-    / "chocolate_sales_clean.csv"
-)
-sales_df = pd.read_csv(DATA_PATH)
-sales_df["year"] = sales_df["year"].astype(int)  # make year an int so filter comparisons work cleanly
+# Load distinct filter choices from parquet via ibis + DuckDB.
+# This only pulls a small metadata table into memory for UI controls.
+choices_df = get_filter_choices()
+
+year_choices = sorted(choices_df["year"].dropna().astype(int).unique().tolist())
+country_choices = sorted(choices_df["country"].dropna().unique().tolist())
+product_choices = sorted(choices_df["product"].dropna().unique().tolist())
+
+YEAR_CHOICES = [str(y) for y in year_choices]
 
 # ---------------------------------------------------------------------------
 # QueryChat (GenAI) setup - separate from the dashboard filters.
@@ -59,7 +58,7 @@ QC_GREETING_PATH = (
     Path(__file__).resolve().parents[1] / "reports" / "querychat_greeting.md"
 )
 
-qc_sales_df = sales_df.copy()
+qc_sales_df = get_full_sales_df().copy()
 
 # Ensure numeric sales for QueryChat (so SUM/AVG works in SQL)
 if qc_sales_df["sales"].dtype == "object":
@@ -113,10 +112,9 @@ _last_updated = date.today().strftime("%B %d, %Y")
 # automatically flows through to every visible element.
 @reactive.calc
 def filtered_sales() -> pd.DataFrame:
-    return filter_sales(
-        sales_df=sales_df,
-        start_year=input.start_year(),
-        end_year=input.end_year(),
+    return filter_sales_lazy(
+        start_year=int(input.start_year()),
+        end_year=int(input.end_year()),
         country=input.country(),
         product=input.product(),
     )
@@ -357,13 +355,12 @@ def querychat_filtered_df() -> pd.DataFrame:
 # all four dropdowns back to their default values. Because we use
 # @reactive.event, this function only runs on an explicit button click -
 # it won't fire just because the app loads. Updating the dropdowns
-# automatically triggers filtered_sales() to rerun, so every chart refreshes.
+# automatically triggers filtered_sales_lazy() to rerun, so every chart refreshes.
 @reactive.effect
 @reactive.event(input.reset_filters)
 def reset_filters():
-    year_choices = ["2022", "2023", "2024"]
-    ui.update_select("start_year", selected=year_choices[0])  # back to the earliest year
-    ui.update_select("end_year", selected=year_choices[-1])   # back to the latest year
+    ui.update_select("start_year", selected=YEAR_CHOICES[0])  # back to the earliest year
+    ui.update_select("end_year", selected=YEAR_CHOICES[-1])   # back to the latest year
     ui.update_select("country", selected="All")               # show all countries
     ui.update_select("product", selected="All")               # show all products
 
@@ -377,44 +374,40 @@ def reset_filters():
 ui.page_opts(title="ChocoSales Analyser")
 
 # Sidebar is open by default on desktop and collapses on mobile.
-# Every dropdown here feeds directly into filtered_sales().
+# Every dropdown here feeds directly into filtered_sales_lazy().
 with ui.sidebar(title="Filters", open="desktop"):
-    
     with ui.panel_conditional("input.main_tab == 'dashboard'"):
         with ui.layout_columns(col_widths=[5, 5]):
             ui.input_select(
                 "start_year",
                 "Start Year",
-                choices=["2022", "2023", "2024"],
-                selected="2022"
+                choices=YEAR_CHOICES,
+                selected=YEAR_CHOICES[0]
             )
             ui.input_select(
                 "end_year",
                 "End Year",
-                choices=["2022", "2023", "2024"],
-                selected="2024"
+                choices=YEAR_CHOICES,
+                selected=YEAR_CHOICES[-1]
             )
         ui.input_select(
             "country",
             "Country",
-            choices=["All"] + sorted(sales_df["country"].dropna().unique().tolist()),
+            choices=["All"] + country_choices,
             selected="All"
         )
         ui.input_select(
             "product",
             "Product Category",
-            choices=["All"] + sorted(sales_df["product"].dropna().unique().tolist()),
+            choices=["All"] + product_choices,
             selected="All"
         )
         ui.input_action_button(
             "reset_filters",
             "Reset Filters",
-            # outline style keeps it unobtrusive; w-100 stretches it to the sidebar width
             class_="btn btn-outline-secondary btn-sm w-100 mt-2",
         )
 
-        # out_active_filter_state - shows a live plain-text summary of whichever
-        # filters are currently active so the user always knows what they're looking at.
         @render.text
         def out_active_filter_state():
             parts = []
@@ -428,7 +421,7 @@ with ui.sidebar(title="Filters", open="desktop"):
             if product != "All":
                 parts.append(f"Product: {product}")
             return " | ".join(parts)
-        
+
     with ui.panel_conditional("input.main_tab != 'dashboard'"):
         ui.markdown("**Note:** Filters apply only on the Dashboard tab.")
 
