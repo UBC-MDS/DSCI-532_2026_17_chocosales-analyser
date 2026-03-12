@@ -18,6 +18,10 @@
 - **Write an experiments notebook**  
   Create `notebooks/m4_querychat_experiments.ipynb` and compare a few example questions before vs after these changes. Summarize what improved.
 
+## M4 Backend Update Summary
+
+For Milestone 4, we updated the dashboard data backend from eager CSV loading in pandas to lazy loading using parquet + DuckDB through ibis. This change preserves the user-facing dashboard behavior while improving scalability and aligning the reactive filtering pipeline with production-style query execution. Input choices are now initialized from distinct metadata queried from parquet, and `filtered_sales` applies all filter conditions before materializing the result as a pandas DataFrame.
+
 ## 2.1 Updated Job Stories
 
 > Status values may be adjusted after we finalize M2 MVP vs M3 stretch scope.
@@ -54,13 +58,16 @@
 | out_top5_products_plot | Output | @render.altair | top5_products_data | #2 |
 | out_active_filter_state | Output | @render.text| input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
 | out_app_footer | Output | @render.ui | filtered_sales | #1, #2, #3, #4 |
+| get_filter_choices | Data access helper | ibis + DuckDB query | processed parquet | #1, #2 |
+| filter_sales_lazy | Data access helper | ibis + DuckDB query + `.execute()` | `start_year, end_year, country, product` | #1, #2, #3 |
+| get_full_sales_df | Data access helper | ibis + DuckDB query + `.execute()` | processed parquet | AI tab support |
 
 ## 2.3 Reactivity Diagram
 
 ```mermaid
 flowchart TD
   %% Inputs
-  SY[/input_start_year/] --> FS{{filtered_sales}}
+  SY[/input_start_year/] --> FS{{filtered_sales(calls DuckDB/ibis lazy query)}}
   EY[/input_end_year/] --> FS
   C[/input_country/] --> FS
   P[/input_product/] --> FS
@@ -97,21 +104,62 @@ flowchart TD
 
 ## 2.4 Calculation Details
 
+### `get_filter_choices` (data access helper)
+
+- **Depends on:** processed parquet dataset
+
+- **What it does (transformation):**
+
+1. Queries distinct values of `year`, `country`, and `product` from the processed parquet dataset through **ibis + DuckDB**.
+2. Returns a small metadata DataFrame used to initialize Shiny input choices.
+3. Avoids loading the full analytical dataset into memory at app startup just to build dropdown options.
+
+- **Consumed by:**
+
+1. `start_year` input initialization
+2. `end_year` input initialization
+3. `country` input initialization
+4. `product` input initialization
+
 ### `filtered_sales` (@reactive.calc)
 
 - **Depends on:** `input_start_year`, `input_end_year`, `input_country`, `input_product`
 - **What it does (transformation):**
 
-1. Loads the cleaned sales dataset (e.g., from `data/raw/chocolate-sales.csv`).  
-2. Filters rows to the selected year range (`start_year` to `end_year`).  
-3. Applies optional filters for `country` and `product` (e.g., "All" = no filter).  
-4. Returns the filtered DataFrame used across the app as the single source of truth.
+1. Reads user-selected filter values from the Shiny inputs.  
+2. Calls a lazy data-access helper (`filter_sales_lazy`) backed by **ibis + DuckDB** over the processed **parquet** dataset. 
+3. Applies year, country, and product filtering at the database/query layer **before** materializing results into memory.  
+4. Executes the filtered query and returns only the matching rows as a pandas DataFrame for downstream plots, tables, and KPI calculations.
+
+- **Why this changed in M4:**
+
+To improve scalability and align with production-style data workflows, M4 switches the dashboard from eager CSV loading in pandas to lazy loading with parquet + DuckDB. This keeps filtering outside pandas until the final query result is needed.
 
 - **Consumed by outputs / downstream calcs:**
 
 1. **Direct outputs:** `out_sales_trend_plot`, `out_country_map`, `out_country_contrib_table`
 2. **Additional output:** `out_app_footer`
 3. **Downstream calcs:** `kpi_metrics`, `yoy_by_country`, `top5_products_data`
+
+### `filter_sales_lazy` (data access helper)
+
+- **Depends on:** processed parquet dataset, selected filter values
+
+- **What it does (transformation):**
+
+1. Creates a lazy ibis table over the parquet dataset using DuckDB.
+2. Applies selected filters for year range, country, and product as query operations.
+3. Executes the filtered query only after all filtering conditions are defined.
+4. Returns a pandas DataFrame containing only matching rows.
+
+- **Why it matters:**
+
+This helper is the core of the M4 backend redesign. It ensures filtering happens before the data enters a DataFrame, satisfying the milestone requirement for database-level filtering.
+
+- **Consumed by:**
+
+1. `filtered_sales`
+2. All downstream dashboard plots, tables, and KPI calculations that depend on `filtered_sales`
 
 ### `kpi_metrics` (@reactive.calc)
 
