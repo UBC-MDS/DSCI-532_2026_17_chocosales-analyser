@@ -1,6 +1,6 @@
 # Milestone 2 Specification
 
-> Team note:this spec is a living document.please update the Status column (✅ / 🔄 Revised / ⏳ Pending M2 / ⏳ Pending M3) as we finalize scope and implement features,fill sections 2.2-2.4 based on the final M2 prototype.
+> M4 updates will be added as new sections; earlier sections are kept for history.
 
 ## 2.1 Updated Job Stories
 
@@ -8,10 +8,10 @@
 
 | # | Job Story | Status | Notes |
 |---|----------|--------|------|
-| 1 | When I’m reviewing sales performance across countries over time, I want to filter by year range and country and see sales trends/YoY growth, so I can spot which markets are growing faster/slower and decide where to focus. | ⏳ Pending M2 | From M1 JTBD 1 |
-| 2 | When I’m evaluating product performance, I want to filter by product category and see top products by sales (and/or average transaction value), so I can prioritize products for marketing/promos. | ⏳ Pending M2 | From M1 JTBD 2 |
-| 3 | When I’m evaluating team performance, I want to compare top sales reps under selected filters, so I can reward top performers and provide targeted support. | 🔄 Revised and ⏳ Pending M3 (TBD) | From M1 JTBD 3 |
-| 4 | When I’ve changed multiple filters, I want a reset button, so I can quickly return to the default view. | ⏳ Pending M2 (Optional) | Optional enhancement |
+| 1 | When I’m reviewing sales performance across countries over time, I want to filter by year range and country and see sales trends/YoY growth, so I can spot which markets are growing faster/slower and decide where to focus. | ✅ Implemented | From M1 JTBD 1 |
+| 2 | When I’m evaluating product performance, I want to filter by product category and see top products by sales (and/or average transaction value), so I can prioritize products for marketing/promos. | ✅ Implemented | From M1 JTBD 2 |
+| 3 | When I’m evaluating team performance, I want to compare top sales reps under selected filters, so I can reward top performers and provide targeted support. | 🔄 Revised | From M1 JTBD 3 |
+| 4 | When I’ve changed multiple filters, I want a reset button, so I can quickly return to the default view. | ✅ Implemented | Optional enhancement |
 
 ## 2.2 Component Inventory
 
@@ -36,7 +36,7 @@
 | out_country_contrib_table | Output |@render.data_frame | filtered_sales | #1, #3 |
 | out_yoy_country_plot | Output | @render.altair | yoy_by_country | #1 |
 | out_top5_products_plot | Output | @render.altair | top5_products_data | #2 |
-| out_active_filter_state | Output | @render.altair| input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
+| out_active_filter_state | Output | @render.text| input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
 | out_app_footer | Output | @render.ui | filtered_sales | #1, #2, #3, #4 |
 
 ## 2.3 Reactivity Diagram
@@ -95,7 +95,7 @@ flowchart TD
 
 1. **Direct outputs:** `out_sales_trend_plot`, `out_country_map`, `out_country_contrib_table`
 2. **Additional output:** `out_app_footer`
-3. **Downstream calcs:** `g`, `yoy_by_country`, `top5_products_data`
+3. **Downstream calcs:** `kpi_metrics`, `yoy_by_country`, `top5_products_data`
 
 ### `kpi_metrics` (@reactive.calc)
 
