@@ -15,6 +15,7 @@
 
 from datetime import date
 from pathlib import Path
+import io
 import sys
 import altair as alt         # all charts are built with Altair
 import pandas as pd
@@ -71,9 +72,10 @@ if qc_sales_df["sales"].dtype == "object":
 
 qc_greeting = None
 if QC_GREETING_PATH.exists():
-    qc_greeting = QC_GREETING_PATH.read_text(encoding="utf-8")
+    with io.open(QC_GREETING_PATH, "r", encoding="utf-8") as f:
+        qc_greeting = f.read()
 
-load_dotenv()
+_ = load_dotenv()
 api_key = os.getenv("GITHUB_TOKEN")
 
 qc = None
@@ -807,11 +809,6 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                         .configure_view(strokeOpacity=0)
                     )
 
-        with ui.layout_columns(col_widths=[6, 6]):
-
-            with ui.card():
-                ui.card_header("Countries Sales Contribution")
-
         # ---------------------------------------------------------------------------
         # Row 2 - summary table on the left, top-5 products chart on the right.
         # ---------------------------------------------------------------------------
@@ -993,18 +990,26 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
-            if qc_available and qc is not None:
-                qc.ui()
-            else:
-                ui.markdown(
-                    f"""
-                **AI Query is currently unavailable.**
-
-                {qc_error_message}
-
-                The rest of the dashboard is still available.
+            
+            with ui.tags.div(
+                style="""
+                    height: 520px;
+                    overflow-y: auto;
+                    padding-right: 0.25rem;
                 """
-            )
+            ):
+                if qc_available and qc is not None:
+                    qc.ui()
+                else:
+                    ui.markdown(
+                        f"""
+                    **AI Query is currently unavailable.**
+
+                    {qc_error_message}
+
+                    The rest of the dashboard is still available.
+                    """
+                    )
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Query Results (filtered table)")
