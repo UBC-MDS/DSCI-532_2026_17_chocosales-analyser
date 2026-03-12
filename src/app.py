@@ -428,6 +428,9 @@ with ui.sidebar(title="Filters", open="desktop"):
             if product != "All":
                 parts.append(f"Product: {product}")
             return " | ".join(parts)
+        
+    with ui.panel_conditional("input.main_tab != 'dashboard'"):
+        ui.markdown("**Note:** Filters apply only on the Dashboard tab.")
 
 # ---------------------------------------------------------------------------
 # Tabs
