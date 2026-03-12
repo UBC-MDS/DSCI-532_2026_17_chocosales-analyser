@@ -3,6 +3,7 @@
 Ask me to filter or sort the chocolate sales transactions using plain English.
 
 Try:
+
 - "Only 2024"
 - "Country is USA"
 - "Product Category is All"
