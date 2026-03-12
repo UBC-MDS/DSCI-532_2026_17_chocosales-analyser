@@ -73,7 +73,7 @@ qc_greeting = None
 if QC_GREETING_PATH.exists():
     qc_greeting = QC_GREETING_PATH.read_text(encoding="utf-8")
 
-load_dotenv()
+_ = load_dotenv()
 api_key = os.getenv("GITHUB_TOKEN")
 
 qc = None
@@ -806,11 +806,6 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                         (base_map + sales_map)
                         .configure_view(strokeOpacity=0)
                     )
-
-        with ui.layout_columns(col_widths=[6, 6]):
-
-            with ui.card():
-                ui.card_header("Countries Sales Contribution")
 
         # ---------------------------------------------------------------------------
         # Row 2 - summary table on the left, top-5 products chart on the right.
