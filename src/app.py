@@ -376,53 +376,54 @@ ui.page_opts(title="ChocoSales Analyser")
 # Sidebar is open by default on desktop and collapses on mobile.
 # Every dropdown here feeds directly into filtered_sales_lazy().
 with ui.sidebar(title="Filters", open="desktop"):
-    with ui.layout_columns(col_widths=[5, 5]):
+    with ui.panel_conditional("input.main_tab == 'dashboard'"):
+        with ui.layout_columns(col_widths=[5, 5]):
+            ui.input_select(
+                "start_year",
+                "Start Year",
+                choices=YEAR_CHOICES,
+                selected=YEAR_CHOICES[0]
+            )
+            ui.input_select(
+                "end_year",
+                "End Year",
+                choices=YEAR_CHOICES,
+                selected=YEAR_CHOICES[-1]
+            )
         ui.input_select(
-            "start_year",
-            "Start Year",
-            choices=YEAR_CHOICES,
-            selected=YEAR_CHOICES[0]
+            "country",
+            "Country",
+            choices=["All"] + country_choices,
+            selected="All"
         )
         ui.input_select(
-            "end_year",
-            "End Year",
-            choices=YEAR_CHOICES,
-            selected=YEAR_CHOICES[-1]
+            "product",
+            "Product Category",
+            choices=["All"] + product_choices,
+            selected="All"
         )
-    ui.input_select(
-        "country",
-        "Country",
-        choices=["All"] + country_choices,
-        selected="All"
-    )
-    ui.input_select(
-        "product",
-        "Product Category",
-        choices=["All"] + product_choices,
-        selected="All"
-    )
-    ui.input_action_button(
-        "reset_filters",
-        "Reset Filters",
-        # outline style keeps it unobtrusive; w-100 stretches it to the sidebar width
-        class_="btn btn-outline-secondary btn-sm w-100 mt-2",
-    )
+        ui.input_action_button(
+            "reset_filters",
+            "Reset Filters",
+            class_="btn btn-outline-secondary btn-sm w-100 mt-2",
+        )
 
-    # out_active_filter_state - shows a live plain-text summary of whichever
-    # filters are currently active so the user always knows what they're looking at.
-    @render.text
-    def out_active_filter_state():
-        parts = []
-        start = input.start_year()
-        end = input.end_year()
-        parts.append(f"Years: {start}–{end}")
-        country = input.country()
-        if country != "All":
-            parts.append(f"Country: {country}")
-        product = input.product()
-        if product != "All":
-            parts.append(f"Product: {product}")
-        return " | ".join(parts)
+        @render.text
+        def out_active_filter_state():
+            parts = []
+            start = input.start_year()
+            end = input.end_year()
+            parts.append(f"Years: {start}–{end}")
+            country = input.country()
+            if country != "All":
+                parts.append(f"Country: {country}")
+            product = input.product()
+            if product != "All":
+                parts.append(f"Product: {product}")
+            return " | ".join(parts)
+
+    with ui.panel_conditional("input.main_tab != 'dashboard'"):
+        ui.markdown("**Note:** Filters apply only on the Dashboard tab.")
 
 # ---------------------------------------------------------------------------
 # Tabs
