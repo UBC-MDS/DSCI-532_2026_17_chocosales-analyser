@@ -15,6 +15,7 @@
 
 from datetime import date
 from pathlib import Path
+import io
 import sys
 import altair as alt         # all charts are built with Altair
 import pandas as pd
@@ -71,7 +72,8 @@ if qc_sales_df["sales"].dtype == "object":
 
 qc_greeting = None
 if QC_GREETING_PATH.exists():
-    qc_greeting = QC_GREETING_PATH.read_text(encoding="utf-8")
+    with io.open(QC_GREETING_PATH, "r", encoding="utf-8") as f:
+        qc_greeting = f.read()
 
 _ = load_dotenv()
 api_key = os.getenv("GITHUB_TOKEN")
