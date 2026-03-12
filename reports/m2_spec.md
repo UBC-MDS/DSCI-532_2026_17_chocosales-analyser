@@ -1,6 +1,22 @@
 # Milestone 2 Specification
 
-> Team note:this spec is a living document.please update the Status column (✅ / 🔄 Revised / ⏳ Pending M2 / ⏳ Pending M3) as we finalize scope and implement features,fill sections 2.2-2.4 based on the final M2 prototype.
+> M4 updates will be added as new sections; earlier sections are kept for history.
+## Milestone 4 – Option A (QueryChat Customization) – Plan
+
+**Goal:** Make the AI Query tab more useful and less confusing by giving QueryChat better context about our dataset and adding simple safety rules for queries.
+
+### What we plan to do
+- **Add dataset context**  
+  Create `reports/querychat_data_description.md` (what the columns mean, units, etc.) and `reports/querychat_extra_instructions.md` (how we want the AI to answer for this dashboard). Then connect these files to QueryChat.
+
+- **Add one user control**  
+  Add a simple control in the AI tab (e.g., “Concise vs Detailed” or “Strict mode / max rows”) so users can change how the AI responds.
+
+- **Use `on_tool_request` **  
+  Intercept QueryChat tool calls to validate/adjust them (ex: SELECT-only and enforce a LIMIT), and handle errors without crashing the app.
+
+- **Write an experiments notebook**  
+  Create `notebooks/m4_querychat_experiments.ipynb` and compare a few example questions before vs after these changes. Summarize what improved.
 
 ## M4 Backend Update Summary
 
@@ -12,10 +28,10 @@ For Milestone 4, we updated the dashboard data backend from eager CSV loading in
 
 | # | Job Story | Status | Notes |
 |---|----------|--------|------|
-| 1 | When I’m reviewing sales performance across countries over time, I want to filter by year range and country and see sales trends/YoY growth, so I can spot which markets are growing faster/slower and decide where to focus. | ⏳ Pending M2 | From M1 JTBD 1 |
-| 2 | When I’m evaluating product performance, I want to filter by product category and see top products by sales (and/or average transaction value), so I can prioritize products for marketing/promos. | ⏳ Pending M2 | From M1 JTBD 2 |
-| 3 | When I’m evaluating team performance, I want to compare top sales reps under selected filters, so I can reward top performers and provide targeted support. | 🔄 Revised and ⏳ Pending M3 (TBD) | From M1 JTBD 3 |
-| 4 | When I’ve changed multiple filters, I want a reset button, so I can quickly return to the default view. | ⏳ Pending M2 (Optional) | Optional enhancement |
+| 1 | When I’m reviewing sales performance across countries over time, I want to filter by year range and country and see sales trends/YoY growth, so I can spot which markets are growing faster/slower and decide where to focus. | ✅ Implemented | From M1 JTBD 1 |
+| 2 | When I’m evaluating product performance, I want to filter by product category and see top products by sales (and/or average transaction value), so I can prioritize products for marketing/promos. | ✅ Implemented | From M1 JTBD 2 |
+| 3 | When I’m evaluating team performance, I want to compare top sales reps under selected filters, so I can reward top performers and provide targeted support. | 🔄 Revised | From M1 JTBD 3 |
+| 4 | When I’ve changed multiple filters, I want a reset button, so I can quickly return to the default view. | ✅ Implemented | Optional enhancement |
 
 ## 2.2 Component Inventory
 
@@ -40,7 +56,7 @@ For Milestone 4, we updated the dashboard data backend from eager CSV loading in
 | out_country_contrib_table | Output |@render.data_frame | filtered_sales | #1, #3 |
 | out_yoy_country_plot | Output | @render.altair | yoy_by_country | #1 |
 | out_top5_products_plot | Output | @render.altair | top5_products_data | #2 |
-| out_active_filter_state | Output | @render.altair| input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
+| out_active_filter_state | Output | @render.text| input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
 | out_app_footer | Output | @render.ui | filtered_sales | #1, #2, #3, #4 |
 | get_filter_choices | Data access helper | ibis + DuckDB query | processed parquet | #1, #2 |
 | filter_sales_lazy | Data access helper | ibis + DuckDB query + `.execute()` | `start_year, end_year, country, product` | #1, #2, #3 |
