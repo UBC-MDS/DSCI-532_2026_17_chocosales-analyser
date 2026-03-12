@@ -58,6 +58,19 @@ YEAR_CHOICES = [str(y) for y in year_choices]
 QC_GREETING_PATH = (
     Path(__file__).resolve().parents[1] / "reports" / "querychat_greeting.md"
 )
+QC_DATA_DESC_PATH = (
+    Path(__file__).resolve().parents[1] / "reports" / "querychat_data_description.md"
+)
+QC_EXTRA_INST_PATH = (
+    Path(__file__).resolve().parents[1] / "reports" / "querychat_extra_instructions.md"
+)
+
+qc_data_description = (
+    QC_DATA_DESC_PATH.read_text(encoding="utf-8") if QC_DATA_DESC_PATH.exists() else None
+)
+qc_extra_instructions = (
+    QC_EXTRA_INST_PATH.read_text(encoding="utf-8") if QC_EXTRA_INST_PATH.exists() else None
+)
 
 qc_sales_df = get_full_sales_df().copy()
 
@@ -88,6 +101,8 @@ if api_key:
             qc_sales_df,
             "chocolate_sales",
             greeting=qc_greeting,
+            data_description=qc_data_description,
+            data_description=qc_data_description,
             client=ChatGithub(model="gpt-4.1", api_key=api_key),
         )
         qc_available = True
