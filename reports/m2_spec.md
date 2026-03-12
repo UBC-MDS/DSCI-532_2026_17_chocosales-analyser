@@ -1,6 +1,22 @@
 # Milestone 2 Specification
 
 > M4 updates will be added as new sections; earlier sections are kept for history.
+## Milestone 4 – Option A (QueryChat Customization) – Plan
+
+**Goal:** Make the AI Query tab more useful and less confusing by giving QueryChat better context about our dataset and adding simple safety rules for queries.
+
+### What we plan to do
+- **Add dataset context**  
+  Create `reports/querychat_data_description.md` (what the columns mean, units, etc.) and `reports/querychat_extra_instructions.md` (how we want the AI to answer for this dashboard). Then connect these files to QueryChat.
+
+- **Add one user control**  
+  Add a simple control in the AI tab (e.g., “Concise vs Detailed” or “Strict mode / max rows”) so users can change how the AI responds.
+
+- **Use `on_tool_request` **  
+  Intercept QueryChat tool calls to validate/adjust them (ex: SELECT-only and enforce a LIMIT), and handle errors without crashing the app.
+
+- **Write an experiments notebook**  
+  Create `notebooks/m4_querychat_experiments.ipynb` and compare a few example questions before vs after these changes. Summarize what improved.
 
 ## 2.1 Updated Job Stories
 
