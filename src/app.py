@@ -1089,17 +1089,11 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Query Results (filtered table)")
 
-            @render.download(
-                filename=lambda: f"querychat_filtered_{date.today().isoformat()}.csv",
-                label="Download CSV",
+            ui.download_button(
+                "download_querychat_data",
+                "Download CSV",
+                class_="btn btn-outline-secondary btn-sm",
             )
-            def download_querychat_data():
-                df = querychat_filtered_df()
-                if df is None:
-                    df = pd.DataFrame()
-                if hasattr(df, "to_pandas"):
-                    df = df.to_pandas()
-                yield df.to_csv(index=False)
 
             @render.data_frame
             def out_querychat_table():
