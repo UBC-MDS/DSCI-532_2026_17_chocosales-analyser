@@ -33,6 +33,7 @@ if str(SRC_DIR) not in sys.path:
 
 # our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
 from utils.lazy_data import get_filter_choices, filter_sales_lazy, get_full_sales_df
+from utils.querychat_guard import enforce_select_and_limit
 from utils.kpi_helpers import (
     format_delta_detail_with_value,
     format_yoy_tile,
@@ -94,6 +95,8 @@ api_key = os.getenv("GITHUB_TOKEN")
 qc = None
 qc_available = False
 qc_error_message = None
+qc_tool_status = reactive.value("")
+qc_tool_warning = reactive.value("") 
 
 if api_key:
     try:
