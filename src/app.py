@@ -1002,6 +1002,28 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
     with ui.nav_panel("AI Query", value="ai"):
         ui.h4("AI Query (GenAI)")
+        
+        with ui.card(class_="shadow-sm border-0 mb-2"):
+            ui.card_header("AI settings")
+            
+            with ui.layout_columns(col_widths=[6, 6]):
+                ui.input_slider(
+                    "qc_max_rows",
+                    "Max rows returned",
+                    min=100,
+                    max=5000,
+                    value=500,
+                    step=100,
+                )
+                ui.input_checkbox(
+                    "qc_strict_select",
+                    "SELECT-only (block update/delete)",
+                    value=True,
+                )
+            ui.tags.div(
+                "These settings apply to AI queries in this tab (enforced in the next PR).",
+                class_="text-muted small",
+            )
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
