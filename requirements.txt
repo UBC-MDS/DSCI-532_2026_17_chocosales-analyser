@@ -7,3 +7,6 @@ vega_datasets==0.9.0
 querychat==0.5.1
 chatlas==0.15.1
 ibis-framework[duckdb]==9.5.0
+
+pytest
+pytest-playwright
