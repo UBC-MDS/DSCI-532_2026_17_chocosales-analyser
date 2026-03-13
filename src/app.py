@@ -96,17 +96,52 @@ qc = None
 qc_available = False
 qc_error_message = None
 qc_tool_status = reactive.value("")
-qc_tool_warning = reactive.value("") 
+qc_tool_warning = reactive.value("")
+
+def _on_qc_tool_request(req):
+    args = getattr(req, "arguments", None) or {}
+    if "query" not in args:
+        return
+
+    old_sql = args.get("query") or ""
+
+    # Defaults in case inputs are not available yet
+    max_rows = 500
+    strict_select = True
+
+    try:
+        max_rows = int(input.qc_max_rows())
+    except Exception:
+        pass
+
+    try:
+        strict_select = bool(input.qc_strict_select())
+    except Exception:
+        pass
+
+    new_sql, warn = enforce_select_and_limit(
+        old_sql,
+        max_rows=max_rows,
+        strict_select=strict_select,
+        table_name="chocolate_sales",
+    )
+
+    req.arguments["query"] = new_sql
+    qc_tool_status.set(f"Applied guardrails: LIMIT {max_rows} | SELECT-only={strict_select}")
+    qc_tool_warning.set(warn)
 
 if api_key:
     try:
+        qc_client = ChatGithub(model="gpt-4.1", api_key=api_key)
+        qc_client.on_tool_request(_on_qc_tool_request)
         qc = QueryChat(
             qc_sales_df,
             "chocolate_sales",
             greeting=qc_greeting,
             data_description=qc_data_description,
             extra_instructions=qc_extra_instructions,
-            client=ChatGithub(model="gpt-4.1", api_key=api_key),
+            client=qc_client,
+            
         )
         qc_available = True
     except Exception as e:
