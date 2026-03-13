@@ -1,8 +1,13 @@
+from pathlib import Path
+import sys
 import pandas as pd
 import pytest
 
-from src.utils.filter_sales import filter_sales
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.utils.filter_sales import filter_sales
 
 @pytest.fixture
 def sample_sales_df():
