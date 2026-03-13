@@ -1021,7 +1021,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                     value=True,
                 )
             ui.tags.div(
-                "These settings apply to AI queries in this tab (enforced in the next PR).",
+                "These settings apply to AI queries in this tab.",
                 class_="text-muted small",
             )
 
