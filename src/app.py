@@ -406,6 +406,17 @@ def querychat_filtered_df() -> pd.DataFrame:
 
     return df
 
+@render.download(
+    filename=lambda: f"querychat_filtered_{date.today().isoformat()}.csv"
+)
+def download_querychat_data():
+    df = querychat_filtered_df()
+    if df is None:
+        df = pd.DataFrame()
+    if hasattr(df, "to_pandas"):
+        df = df.to_pandas()
+    yield df.to_csv(index=False)
+
 # reset_filters listens for a click on the "Reset Filters" button and puts
 # all four dropdowns back to their default values. Because we use
 # @reactive.event, this function only runs on an explicit button click -
