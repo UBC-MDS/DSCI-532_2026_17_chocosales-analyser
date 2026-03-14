@@ -9,11 +9,11 @@
 - **Add dataset context**  
   Create `reports/querychat_data_description.md` (what the columns mean, units, etc.) and `reports/querychat_extra_instructions.md` (how we want the AI to answer for this dashboard). Then connect these files to QueryChat.
 
-- **Add one user control**  
-  Add a simple control in the AI tab (e.g., “Concise vs Detailed” or “Strict mode / max rows”) so users can change how the AI responds.
+- **Add user-facing AI settings controls**  
+  Add two controls in the AI tab: **Max rows returned** and **SELECT-only**. These controls let users limit the size of AI-generated query results and restrict QueryChat to read-only SQL behavior.
 
 - **Use `on_tool_request` **  
-  Intercept QueryChat tool calls to validate/adjust them (ex: SELECT-only and enforce a LIMIT), and handle errors without crashing the app.
+    Intercept QueryChat tool calls to validate and adjust SQL before execution. In this milestone, we use it to enforce read-only behavior when SELECT-only is enabled and to apply a maximum row limit based on the AI settings controls.
 
 - **Write an experiments notebook**  
   Create `notebooks/m4_querychat_experiments.ipynb` and compare a few example questions before vs after these changes. Summarize what improved.
