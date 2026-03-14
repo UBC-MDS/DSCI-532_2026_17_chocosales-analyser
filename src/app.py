@@ -20,6 +20,7 @@ import sys
 import altair as alt         # all charts are built with Altair
 import pandas as pd
 from shiny import reactive
+from shiny import ui as core_ui
 from shiny.express import input, render, ui   # Express mode - no explicit App() needed
 from shinywidgets import render_altair        # lets us drop Altair charts into Shiny outputs
 from querychat.express import QueryChat
@@ -98,6 +99,11 @@ qc_error_message = None
 qc_tool_status = reactive.value("")
 qc_tool_warning = reactive.value("")
 
+qc_guardrail_settings = {
+    "max_rows": 500,
+    "strict_select": True,
+}
+
 def _on_qc_tool_request(req):
     args = getattr(req, "arguments", None) or {}
     if "query" not in args:
@@ -105,19 +111,8 @@ def _on_qc_tool_request(req):
 
     old_sql = args.get("query") or ""
 
-    # Defaults in case inputs are not available yet
-    max_rows = 500
-    strict_select = True
-
-    try:
-        max_rows = int(input.qc_max_rows())
-    except Exception:
-        pass
-
-    try:
-        strict_select = bool(input.qc_strict_select())
-    except Exception:
-        pass
+    max_rows = qc_guardrail_settings["max_rows"]
+    strict_select = qc_guardrail_settings["strict_select"]
 
     new_sql, warn = enforce_select_and_limit(
         old_sql,
@@ -133,7 +128,7 @@ def _on_qc_tool_request(req):
 if api_key:
     try:
         qc_client = ChatGithub(model="gpt-4.1", api_key=api_key)
-        qc_client.on_tool_request(_on_qc_tool_request)
+        _ = qc_client.on_tool_request(_on_qc_tool_request)
         qc = QueryChat(
             qc_sales_df,
             "chocolate_sales",
@@ -165,6 +160,11 @@ _last_updated = date.today().strftime("%B %d, %Y")
 # filtered_sales is the single source of truth for the whole app.
 # Every chart and KPI reads from here, so changing a sidebar filter
 # automatically flows through to every visible element.
+@reactive.effect
+def _sync_qc_guardrail_settings():
+    qc_guardrail_settings["max_rows"] = int(input.qc_max_rows())
+    qc_guardrail_settings["strict_select"] = bool(input.qc_strict_select())
+    
 @reactive.calc
 def filtered_sales() -> pd.DataFrame:
     return filter_sales_lazy(
@@ -405,17 +405,6 @@ def querychat_filtered_df() -> pd.DataFrame:
         )
 
     return df
-
-@render.download(
-    filename=lambda: f"querychat_filtered_{date.today().isoformat()}.csv"
-)
-def download_querychat_data():
-    df = querychat_filtered_df()
-    if df is None:
-        df = pd.DataFrame()
-    if hasattr(df, "to_pandas"):
-        df = df.to_pandas()
-    yield df.to_csv(index=False)
 
 # reset_filters listens for a click on the "Reset Filters" button and puts
 # all four dropdowns back to their default values. Because we use
@@ -1073,6 +1062,14 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                 "These settings apply to AI queries in this tab.",
                 class_="text-muted small",
             )
+            
+            @render.text
+            def out_qc_debug_settings():
+                return (
+                    f"Debug - slider: {input.qc_max_rows()} | "
+                    f"strict: {bool(input.qc_strict_select())}"
+                )
+                
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
@@ -1100,20 +1097,17 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Query Results (filtered table)")
 
-            ui.download_button(
-                "download_querychat_data",
-                "Download CSV",
-                class_="btn btn-outline-secondary btn-sm",
+            @render.download(
+                filename=lambda: f"querychat_filtered_{date.today().isoformat()}.csv",
+                label="Download CSV",
             )
+            def download_querychat_data():
+                df = querychat_filtered_df()
+                yield df.to_csv(index=False)
 
             @render.data_frame
             def out_querychat_table():
                 df = querychat_filtered_df()
-                if df is None:
-                    df = pd.DataFrame()
-                # Some backends return non-pandas frames; convert if needed
-                if hasattr(df, "to_pandas"):
-                    df = df.to_pandas()
                 return render.DataGrid(df, summary=False)
 
         with ui.card(class_="shadow-sm border-0"):
