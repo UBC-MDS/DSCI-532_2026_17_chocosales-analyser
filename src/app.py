@@ -33,11 +33,6 @@ if str(SRC_DIR) not in sys.path:
 
 # our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
 from utils.lazy_data import get_filter_choices, filter_sales_lazy, get_full_sales_df
-from utils.kpi_helpers import (
-    format_delta_detail_with_value,
-    format_yoy_tile,
-)
-
 import os
 from dotenv import load_dotenv
 
@@ -453,27 +448,14 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             @render.ui
             def out_total_revenue():
                 metrics = kpi_metrics()
-                detail, detail_class = format_delta_detail_with_value(
-                    metrics["revenue_delta_pct"],
-                    metrics["prev_year"],
-                    metrics["prev_revenue"],
-                    "$",
-                )
                 return ui.value_box(
                     title=ui.tags.div(
                         "Total Sales Revenue (USD)",
                         class_="fw-bold fs-5 text-white text-center mb-0",
                     ),
-                    value=ui.TagList(
-                        ui.tags.div(
-                            f"${metrics['total_revenue']:,.1f}",
-                            class_="fs-3 fw-bold lh-1 text-white text-center",
-                        ),
-                        ui.tags.div(
-                            detail,
-                            class_=f"{detail_class} opacity-75",
-                            style="font-size: 0.95rem;",
-                        ),
+                    value=ui.tags.div(
+                        f"${metrics['total_revenue']:,.1f}",
+                        class_="fs-3 fw-bold lh-1 text-white text-center",
                     ),
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
@@ -483,26 +465,28 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             @render.ui
             def out_yoy_growth_rate():
                 metrics = kpi_metrics()
-                main_text, detail, detail_class, main_class = format_yoy_tile(
-                    metrics["yoy_growth_rate"],
-                    metrics["prev_year"],
-                    metrics["prev_year_sales"],
-                )
+                yoy_value = metrics["yoy_growth_rate"]
+                if yoy_value is None:
+                    main_text = "N/A"
+                    main_class = "text-white-50"
+                elif yoy_value > 0:
+                    main_text = f"{yoy_value * 100:,.1f}%"
+                    main_class = "text-warning"
+                elif yoy_value < 0:
+                    main_text = f"{yoy_value * 100:,.1f}%"
+                    main_class = "text-danger"
+                else:
+                    main_text = f"{yoy_value * 100:,.1f}%"
+                    main_class = "text-white-50"
+
                 return ui.value_box(
                     title=ui.tags.div(
                         "Year Over Year Growth Rate (%)",
                         class_="fw-bold fs-5 text-white text-center mb-0",
                     ),
-                    value=ui.TagList(
-                        ui.tags.div(
-                            main_text,
-                            class_=f"fs-3 fw-bold lh-1 {main_class} text-center",
-                        ),
-                        ui.tags.div(
-                            detail,
-                            class_=f"{detail_class} opacity-75",
-                            style="font-size: 0.95rem;",
-                        ),
+                    value=ui.tags.div(
+                        main_text,
+                        class_=f"fs-3 fw-bold lh-1 {main_class} text-center",
                     ),
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
@@ -512,27 +496,14 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             @render.ui
             def out_avg_sales_per_tran():
                 metrics = kpi_metrics()
-                detail, detail_class = format_delta_detail_with_value(
-                    metrics["avg_sales_delta_pct"],
-                    metrics["prev_year"],
-                    metrics["prev_avg_sales_per_tran"],
-                    "$",
-                )
                 return ui.value_box(
                     title=ui.tags.div(
                         "Average Sales Per Transaction (USD)",
                         class_="fw-bold fs-5 text-white text-center mb-0",
                     ),
-                    value=ui.TagList(
-                        ui.tags.div(
-                            f"${metrics['avg_sales_per_tran']:,.1f}",
-                            class_="fs-3 fw-bold lh-1 text-white text-center",
-                        ),
-                        ui.tags.div(
-                            detail,
-                            class_=f"{detail_class} opacity-75",
-                            style="font-size: 0.95rem;",
-                        ),
+                    value=ui.tags.div(
+                        f"${metrics['avg_sales_per_tran']:,.1f}",
+                        class_="fs-3 fw-bold lh-1 text-white text-center",
                     ),
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
@@ -542,26 +513,14 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             @render.ui
             def out_total_transactions():
                 metrics = kpi_metrics()
-                detail, detail_class = format_delta_detail_with_value(
-                    metrics["transactions_delta_pct"],
-                    metrics["prev_year"],
-                    metrics["prev_total_transactions"],
-                )
                 return ui.value_box(
                     title=ui.tags.div(
                         "Total Transaction (Count)",
                         class_="fw-bold fs-5 text-white text-center mb-0",
                     ),
-                    value=ui.TagList(
-                        ui.tags.div(
-                            f"{metrics['total_transactions']:,}",
-                            class_="fs-3 fw-bold lh-1 text-white text-center",
-                        ),
-                        ui.tags.div(
-                            detail,
-                            class_=f"{detail_class} opacity-75",
-                            style="font-size: 0.95rem;",
-                        ),
+                    value=ui.tags.div(
+                        f"{metrics['total_transactions']:,}",
+                        class_="fs-3 fw-bold lh-1 text-white text-center",
                     ),
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
