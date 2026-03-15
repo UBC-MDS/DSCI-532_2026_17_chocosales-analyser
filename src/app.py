@@ -1061,15 +1061,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             ui.tags.div(
                 "These settings apply to AI queries in this tab.",
                 class_="text-muted small",
-            )
-            
-            @render.text
-            def out_qc_debug_settings():
-                return (
-                    f"Debug - slider: {input.qc_max_rows()} | "
-                    f"strict: {bool(input.qc_strict_select())}"
-                )
-                
+            )  
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
