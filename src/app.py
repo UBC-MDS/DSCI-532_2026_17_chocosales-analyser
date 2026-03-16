@@ -20,6 +20,7 @@ import sys
 import altair as alt         # all charts are built with Altair
 import pandas as pd
 from shiny import reactive
+from shiny import ui as core_ui
 from shiny.express import input, render, ui   # Express mode - no explicit App() needed
 from shinywidgets import render_altair        # lets us drop Altair charts into Shiny outputs
 from querychat.express import QueryChat
@@ -33,6 +34,12 @@ if str(SRC_DIR) not in sys.path:
 
 # our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
 from utils.lazy_data import get_filter_choices, filter_sales_lazy, get_full_sales_df
+from utils.querychat_guard import enforce_select_and_limit
+from utils.kpi_helpers import (
+    format_delta_detail_with_value,
+    format_yoy_tile,
+)
+
 import os
 from dotenv import load_dotenv
 
@@ -52,6 +59,19 @@ YEAR_CHOICES = [str(y) for y in year_choices]
 
 QC_GREETING_PATH = (
     Path(__file__).resolve().parents[1] / "reports" / "querychat_greeting.md"
+)
+QC_DATA_DESC_PATH = (
+    Path(__file__).resolve().parents[1] / "reports" / "querychat_data_description.md"
+)
+QC_EXTRA_INST_PATH = (
+    Path(__file__).resolve().parents[1] / "reports" / "querychat_extra_instructions.md"
+)
+
+qc_data_description = (
+    QC_DATA_DESC_PATH.read_text(encoding="utf-8") if QC_DATA_DESC_PATH.exists() else None
+)
+qc_extra_instructions = (
+    QC_EXTRA_INST_PATH.read_text(encoding="utf-8") if QC_EXTRA_INST_PATH.exists() else None
 )
 
 qc_sales_df = get_full_sales_df().copy()
@@ -76,14 +96,47 @@ api_key = os.getenv("GITHUB_TOKEN")
 qc = None
 qc_available = False
 qc_error_message = None
+qc_tool_status = reactive.value("")
+qc_tool_warning = reactive.value("")
+
+qc_guardrail_settings = {
+    "max_rows": 500,
+    "strict_select": True,
+}
+
+def _on_qc_tool_request(req):
+    args = getattr(req, "arguments", None) or {}
+    if "query" not in args:
+        return
+
+    old_sql = args.get("query") or ""
+
+    max_rows = qc_guardrail_settings["max_rows"]
+    strict_select = qc_guardrail_settings["strict_select"]
+
+    new_sql, warn = enforce_select_and_limit(
+        old_sql,
+        max_rows=max_rows,
+        strict_select=strict_select,
+        table_name="chocolate_sales",
+    )
+
+    req.arguments["query"] = new_sql
+    qc_tool_status.set(f"Applied guardrails: LIMIT {max_rows} | SELECT-only={strict_select}")
+    qc_tool_warning.set(warn)
 
 if api_key:
     try:
+        qc_client = ChatGithub(model="gpt-4.1", api_key=api_key)
+        _ = qc_client.on_tool_request(_on_qc_tool_request)
         qc = QueryChat(
             qc_sales_df,
             "chocolate_sales",
             greeting=qc_greeting,
-            client=ChatGithub(model="gpt-4.1", api_key=api_key),
+            data_description=qc_data_description,
+            extra_instructions=qc_extra_instructions,
+            client=qc_client,
+            
         )
         qc_available = True
     except Exception as e:
@@ -107,6 +160,11 @@ _last_updated = date.today().strftime("%B %d, %Y")
 # filtered_sales is the single source of truth for the whole app.
 # Every chart and KPI reads from here, so changing a sidebar filter
 # automatically flows through to every visible element.
+@reactive.effect
+def _sync_qc_guardrail_settings():
+    qc_guardrail_settings["max_rows"] = int(input.qc_max_rows())
+    qc_guardrail_settings["strict_select"] = bool(input.qc_strict_select())
+    
 @reactive.calc
 def filtered_sales() -> pd.DataFrame:
     return filter_sales_lazy(
@@ -992,6 +1050,28 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
     with ui.nav_panel("AI Query", value="ai"):
         ui.h4("AI Query (GenAI)")
+        
+        with ui.card(class_="shadow-sm border-0 mb-2"):
+            ui.card_header("AI settings")
+            
+            with ui.layout_columns(col_widths=[6, 6]):
+                ui.input_slider(
+                    "qc_max_rows",
+                    "Max rows returned",
+                    min=100,
+                    max=5000,
+                    value=500,
+                    step=100,
+                )
+                ui.input_checkbox(
+                    "qc_strict_select",
+                    "SELECT-only (block update/delete)",
+                    value=True,
+                )
+            ui.tags.div(
+                "These settings apply to AI queries in this tab.",
+                class_="text-muted small",
+            )  
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
@@ -1025,20 +1105,11 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             )
             def download_querychat_data():
                 df = querychat_filtered_df()
-                if df is None:
-                    df = pd.DataFrame()
-                if hasattr(df, "to_pandas"):
-                    df = df.to_pandas()
                 yield df.to_csv(index=False)
 
             @render.data_frame
             def out_querychat_table():
                 df = querychat_filtered_df()
-                if df is None:
-                    df = pd.DataFrame()
-                # Some backends return non-pandas frames; convert if needed
-                if hasattr(df, "to_pandas"):
-                    df = df.to_pandas()
                 return render.DataGrid(df, summary=False)
 
         with ui.card(class_="shadow-sm border-0"):
