@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-03-17
+
+### Added
+- Added QueryChat dataset-context files and extra instructions so AI responses better match the chocolate sales schema and dashboard goals via #69 and #86.
+- Added QueryChat SQL guardrails using `on_tool_request` plus `enforce_select_and_limit()` to support safer read-only querying and automatic row limiting via #80.
+- Added user-facing AI controls for `Max rows returned` and `SELECT-only` in the AI Query tab via #85.
+- Added lazy parquet + DuckDB/ibis data-access helpers (`get_filter_choices`, `filter_sales_lazy`, `get_full_sales_df`) to support dashboard filtering and AI access without eager CSV loading via #62.
+- Set up test structure and added testing dependencies.
+- Added a QueryChat experiments notebook documenting representative prompts, observed behaviour, and final customization choices via #82.
+- Added `ibis-framework[duckdb]` to `environment.yml` and `requirements.txt`.
+- Implemented `convert_to_parquet.py`:
+  - converts the processed dataset to Parquet format in `data/processed/`.
+- Created `lazy_data.py` to support lazy data loading:
+  - `get_duckdb_connection()` for DuckDB connection via ibis
+  - `get_sales_table()` for accessing the parquet dataset
+  - `filter_sales_lazy()` for efficient filtering using lazy evaluation.
+- Added Playwright end-to-end coverage for aggregation correctness, year-boundary behavior, edge-case filters, and reset-filter recovery via #88.
+- Ensured tests run successfully using `pytest`.
+- Added one-sentence descriptions per test to clarify:
+  - what behaviour is being verified.
+  - why it matters for dashboard functionality.  
+
+
+
 
 ## [0.3.0] - 2026-03-08
 
