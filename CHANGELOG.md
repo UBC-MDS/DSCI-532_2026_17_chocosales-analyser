@@ -72,7 +72,11 @@ This release extends the AI Query tab through QueryChat customization: we added 
 - **Why this option over the others:** We already have QueryChat in the dashboard, so Option A builds on an existing feature with lower integration risk than adding external logging or complex RAG. We chose Option A over B, C, and D because it builds directly on our existing AI Query tab with lower integration risk and clearer user benefit for this milestone. It also fits the lecture focus on prompt context and tool interception.
 - **Feature prioritization issue link:** issues #63
 
+### Collaboration
 
+- **CONTRIBUTING.md:** existing project workflow retained in `CONTRIBUTING.md`; M4 collaboration updates are summarized below
+- **M3 retrospective:** After M3, we shifted toward smaller feature branches, more focused PRs, and earlier review cycles so UI, backend, and AI-query changes could be integrated with less merge friction.
+- **M4:** This milestone, we split the work across dedicated PRs for QueryChat context, SQL guardrails, AI controls, experiments, backend migration, and testing, which made reviews easier.
 
 ## [0.3.0] - 2026-03-08
 
