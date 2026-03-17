@@ -33,3 +33,10 @@ def sales_df() -> pd.DataFrame:
             .astype(float)
         )
     return df
+
+def _open_dashboard(page: Page, app_proc: ShinyAppProc) -> None:
+    page.goto(app_proc.url)
+    expect(
+        page.get_by_text("Chocolate Sales Analyser Dashboard")
+    ).to_be_visible()
+    
