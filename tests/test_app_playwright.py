@@ -127,3 +127,42 @@ def test_yoy_boundary_same_start_and_end_year_is_zero(
 
     assert _extract_yoy_main_text(page) == "0.0%"
     expect(page.get_by_text(f"{year} vs {year} (0%)")).to_be_visible()
+
+# Edge-Case Filter behaviour tests verify that narrow filter combinations yield correct KPIs, which is important for filter consistency and user trust.
+def test_country_product_year_slice_matches_expected_kpis(
+    page: Page, app: ShinyAppProc, sales_df: pd.DataFrame
+) -> None:
+    """Verify a narrow year-country-product slice matches KPIs.
+
+    This matters for filter consistency.
+    """
+    _open_dashboard(page, app)
+
+    seed = sales_df.iloc[0]
+    year = int(seed["year"])
+    country = str(seed["country"])
+    product = str(seed["product"])
+
+    expected_slice = sales_df[
+        (sales_df["year"] == year)
+        & (sales_df["country"] == country)
+        & (sales_df["product"] == product)
+    ]
+    expected_revenue = float(expected_slice["sales"].sum())
+    expected_transactions = int(expected_slice.shape[0])
+
+    _set_filters(
+        page,
+        start_year=year,
+        end_year=year,
+        country=country,
+        product=product,
+    )
+
+    assert _extract_total_revenue(page) == pytest.approx(
+        expected_revenue,
+        abs=0.1,
+    )
+    assert _extract_total_transactions(page) == expected_transactions
+    assert _extract_yoy_main_text(page) == "0.0%"
+    expect(page.get_by_text(f"{year} vs {year} (0%)")).to_be_visible()
