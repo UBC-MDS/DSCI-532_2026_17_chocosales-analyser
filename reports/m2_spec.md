@@ -1,97 +1,197 @@
 # Milestone 2 Specification
 
+> M4 updates will be added as new sections; earlier sections are kept for history.
+## Milestone 4 – Option A (QueryChat Customization) – Plan
+
+**Goal:** Make the AI Query tab more useful and less confusing by giving QueryChat better context about our dataset and adding simple safety rules for queries.
+
+### What we plan to do
+- **Add dataset context**  
+  Create `reports/querychat_data_description.md` (what the columns mean, units, etc.) and `reports/querychat_extra_instructions.md` (how we want the AI to answer for this dashboard). Then connect these files to QueryChat.
+
+- **Add user-facing AI settings controls**  
+  Add two controls in the AI tab: **Max rows returned** and **SELECT-only**. These controls let users limit the size of AI-generated query results and restrict QueryChat to read-only SQL behavior.
+
+- **Use `on_tool_request`**  
+    Intercept QueryChat tool calls to validate and adjust SQL before execution. In this milestone, we use it to enforce read-only behavior when SELECT-only is enabled and to apply a maximum row limit based on the AI settings controls.
+
+- **Write an experiments notebook**  
+  Create `notebooks/querychat_experiments.ipynb` to document representative prompts, observed behavior, and the motivation for the final QueryChat customization choices.
+
+### M4 Option A - Current implementation results
+
+We implemented QueryChat customization through three main changes:
+
+- **Dataset context:** QueryChat uses `reports/querychat_data_description.md` and `reports/querychat_extra_instructions.md` so responses stay aligned with the chocolate sales dataset and dashboard goals.
+- **User-facing controls:** the AI tab includes **Max rows returned** and **SELECT-only** so users can directly influence QueryChat behavior.
+- **Tool interception and safety:** QueryChat uses `on_tool_request` guardrails to enforce safer query behavior and row limits.
+
+### Observed behavior from experimentation
+
+In our experiments:
+- summary prompts such as `What is the total sales revenue?` returned relevant dataset-aware answers
+- row-returning prompts such as `Show the first 20 rows where boxes shipped are above 100` used the Query Data path and returned limited results
+- destructive prompts such as `Delete all rows` were safely refused with **SELECT-only** enabled
+
+These results supported our choice of Option A because they improved relevance, safety, and usability in the existing AI Query tab.
+
+## M4 Backend Update Summary
+
+For Milestone 4, we updated the dashboard data backend from eager CSV loading in pandas to lazy loading using parquet + DuckDB through ibis. This change preserves the user-facing dashboard behavior while improving scalability and aligning the reactive filtering pipeline with production-style query execution. Input choices are now initialized from distinct metadata queried from parquet, and `filtered_sales` applies all filter conditions before materializing the result as a pandas DataFrame.
+
 ## 2.1 Updated Job Stories
 
 | # | Job Story | Status | Notes |
 |---|----------|--------|------|
 | 1 | When I’m reviewing sales performance across countries over time, I want to filter by year range and country and see sales trends/YoY growth, so I can spot which markets are growing faster/slower and decide where to focus. | ✅ Implemented | From M1 JTBD 1 |
 | 2 | When I’m evaluating product performance, I want to filter by product category and see top products by sales (and/or average transaction value), so I can prioritize products for marketing/promos. | ✅ Implemented | From M1 JTBD 2 |
-| 3 | When I’m evaluating team performance, I want to compare top sales reps under selected filters, so I can reward top performers and provide targeted support. | 🔄 Revised and ⏳ Pending M3 (TBD) | Partially supported in M2 via the country contribution table (shows top sales rep). |
-| 4 | When I’ve changed multiple filters, I want a reset button, so I can quickly return to the default view. | ✅ Implemented | Reset Filters button added in M2. |
+| 3 | When I’m evaluating team performance, I want to compare top sales reps under selected filters, so I can reward top performers and provide targeted support. | 🔄 Revised | From M1 JTBD 3 |
+| 4 | When I’ve changed multiple filters, I want a reset button, so I can quickly return to the default view. | ✅ Implemented | Optional enhancement |
 
 ## 2.2 Component Inventory
 
 | ID | Type | Shiny Widget/renderer | Depends On | Job Story |
 |---|---|---|---|---|
-| start_year | Input | `ui.input_select()` | _ | #1 |
-| end_year | Input | `ui.input_select()` | _ | #1 |
-| country | Input | `ui.input_select()` | _ | #1 |
-| product | Input | `ui.input_select()` | _ | #2 |
-| reset_filters | Input | `ui.input_action_button()` | _ | #4 |
-| reset_filters_effect | Reactive effect | `@reactive.effect` + `@reactive.event(input.reset_filters)` | `reset_filters` | #4 |
-| filtered_sales | Reactive calc | `@reactive.calc` | `start_year, end_year, country, product` | #1, #2, #3 |
-| kpi_metrics | Reactive calc | `@reactive.calc` | `filtered_sales` | #1, #2 |
-| yoy_by_country | Reactive calc | `@reactive.calc` | `filtered_sales` | #1 |
-| top5_products_data | Reactive calc | `@reactive.calc` | `filtered_sales` | #2 |
-| out_total_revenue | Output | `@render.ui` (`ui.value_box()`) | `kpi_metrics` | #1 |
-| out_avg_sales_per_tran | Output | `@render.ui` (`ui.value_box()`) | `kpi_metrics` | #1 |
-| out_yoy_growth_rate | Output | `@render.ui` (`ui.value_box()`) | `kpi_metrics` | #1 |
-| out_total_transactions | Output | `@render.ui` (`ui.value_box()`) | `kpi_metrics` | #1 |
-| out_yoy_country_plot | Output | shinywidgets `@render_altair` | `yoy_by_country` | #1 |
-| out_sales_trend_plot | Output | shinywidgets `@render_altair` | `filtered_sales` | #1 |
-| out_country_map | Output | shinywidgets `@render_altair` | `filtered_sales` | #1 |
-| out_country_contrib_table | Output | `@render.data_frame` | `filtered_sales` | #1, #3 |
-| out_top5_products_plot | Output | shinywidgets `@render_altair` | `top5_products_data` | #2 |
-| out_active_filter_state | Output | `@render.text` | `start_year, end_year, country, product` | #1, #2, #3 |
-| out_app_footer | Output | `@render.ui` | `filtered_sales` | #1, #2, #3, #4 |
+| input_start_year | Input | ui.input_select() | _ | #1 |
+| input_end_year | Input | ui.input_select() | _ | #1 |
+| input_country | Input | ui.input_select() | _ | #1 |
+| input_product| Input | ui.input_select() | - | #2 |
+| input_reset_filters | Input | ui.input_action_button() | - | #4 |
+| reset_filters | Reactive effect | @reactive.effect | input_reset_filters | #4 |
+| filtered_sales | Reactive calc  | @reactive.calc | input_start_year, input_end_year, input_country, input_product  | #1, #2, #3 |
+| kpi_metrics | Reactive calc | @reactive.calc | filtered_sales | #1, #2 |
+| yoy_by_country | Reactive calc | @reactive.calc  | filtered_sales | #1 |
+| top5_products_data | Reactive calc | @reactive.calc | filtered_sales | #2 |
+| out_total_revenue | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
+| out_avg_sales_per_tran | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
+| out_yoy_growth_rate | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
+| out_total_transactions | Output | @render.ui (returns ui.value_box()) | kpi_metrics | #1 |
+| out_sales_trend_plot| Output | @render.altair | filtered_sales | #1 |
+| out_country_map | Output | @render.altair | filtered_sales | #1 |
+| out_country_contrib_table | Output |@render.data_frame | filtered_sales | #1, #3 |
+| out_yoy_country_plot | Output | @render.altair | yoy_by_country | #1 |
+| out_top5_products_plot | Output | @render.altair | top5_products_data | #2 |
+| out_active_filter_state | Output | @render.text| input_start_year, input_end_year, input_country, input_product | #1, #2, #3 |
+| out_app_footer | Output | @render.ui | filtered_sales | #1, #2, #3, #4 |
+| get_filter_choices | Data access helper | ibis + DuckDB query | processed parquet | #1, #2 |
+| filter_sales_lazy | Data access helper | ibis + DuckDB query + `.execute()` | `start_year, end_year, country, product` | #1, #2, #3 |
+| get_full_sales_df | Data access helper | ibis + DuckDB query + `.execute()` | processed parquet | AI tab support |
+| input_qc_max_rows | Input | ui.input_slider() | _ | M4 Option A |
+| input_qc_strict_select | Input | ui.input_checkbox() | _ | M4 Option A |
+| querychat_filtered_df | Reactive calc | @reactive.calc | QueryChat result | M4 Option A |
+| qc_tool_request_guard | Tool interception / helper | on_tool_request | input_qc_max_rows, input_qc_strict_select | M4 Option A |
+| out_querychat_table | Output | @render.data_frame | querychat_filtered_df | M4 Option A |
+| out_querychat_country_plot | Output | @render.altair | querychat_filtered_df | M4 Option A |
+| out_querychat_top_products_plot | Output | @render.altair | querychat_filtered_df | M4 Option A |
 
 ## 2.3 Reactivity Diagram
 
 ```mermaid
 flowchart TD
-  %% Inputs
-  SY[/input_start_year/] --> FS{{filtered_sales}}
-  EY[/input_end_year/] --> FS
-  C[/input_country/] --> FS
-  P[/input_product/] --> FS
-  SY --> AFS([out_active_filter_state])
+  PP[processed_parquet] --> GFC[get_filter_choices]
+  PP --> FSL[filter_sales_lazy]
+  PP --> GF[get_full_sales_df]
+
+  GFC --> SY[input_start_year]
+  GFC --> EY[input_end_year]
+  GFC --> C[input_country]
+  GFC --> P[input_product]
+
+  R[input_reset_filters] --> RF[reset_filters]
+  RF --> SY
+  RF --> EY
+  RF --> C
+  RF --> P
+
+  SY --> FS[filtered_sales]
+  EY --> FS
+  C --> FS
+  P --> FS
+  FSL --> FS
+
+  SY --> AFS[out_active_filter_state]
   EY --> AFS
   C --> AFS
   P --> AFS
 
-  %% Optional enhancement: reset
-  R[/input_reset_filters/] --> RF[reset_filters]
-  RF --> RFT[[reactive.effect]]
+  FS --> KM[kpi_metrics]
+  FS --> YY[yoy_by_country]
+  FS --> TP[top5_products_data]
 
-  %% Reactive calcs derived from filtered_sales
-  FS --> KM{{kpi_metrics}}
-  FS --> YY{{yoy_by_country}}
-  FS --> TP{{top5_products_data}}
+  FS --> ST[out_sales_trend_plot]
+  FS --> MAP[out_country_map]
+  FS --> TBL[out_country_contrib_table]
+  FS --> FTR[out_app_footer]
 
-  %% Outputs consuming filtered_sales directly
-  FS --> ST([out_sales_trend_plot])
-  FS --> MAP([out_country_map])
-  FS --> TBL([out_country_contrib_table])
-  FS --> FTR([out_app_footer])
+  KM --> TR[out_total_revenue]
+  KM --> AV[out_avg_sales_per_tran]
+  KM --> GR[out_yoy_growth_rate]
+  KM --> TX[out_total_transactions]
 
-  %% KPI value box outputs consuming kpi_metrics
-  KM --> TR([out_total_revenue])
-  KM --> AV([out_avg_sales_per_tran])
-  KM --> GR([out_yoy_growth_rate])
-  KM --> TX([out_total_transactions])
+  YY --> YYPL[out_yoy_country_plot]
+  TP --> TPPL[out_top5_products_plot]
 
-  %% Outputs consuming yoy/top5 calcs
-  YY --> YYPL([out_yoy_country_plot])
-  TP --> TPPL([out_top5_products_plot])
+  GF --> AI[AI_tab_support]
 ```
 
 ## 2.4 Calculation Details
+
+### `get_filter_choices` (data access helper)
+
+- **Depends on:** processed parquet dataset
+
+- **What it does (transformation):**
+
+1. Queries distinct values of `year`, `country`, and `product` from the processed parquet dataset through **ibis + DuckDB**.
+2. Returns a small metadata DataFrame used to initialize Shiny input choices.
+3. Avoids loading the full analytical dataset into memory at app startup just to build dropdown options.
+
+- **Consumed by:**
+
+1. `start_year` input initialization
+2. `end_year` input initialization
+3. `country` input initialization
+4. `product` input initialization
 
 ### `filtered_sales` (@reactive.calc)
 
 - **Depends on:** `input_start_year`, `input_end_year`, `input_country`, `input_product`
 - **What it does (transformation):**
 
-1. Loads the cleaned sales dataset (e.g., from `data/raw/chocolate-sales.csv`).  
-2. Filters rows to the selected year range (`start_year` to `end_year`).  
-3. Applies optional filters for `country` and `product` (e.g., "All" = no filter).  
-4. Returns the filtered DataFrame used across the app as the single source of truth.
+1. Reads user-selected filter values from the Shiny inputs.  
+2. Calls a lazy data-access helper (`filter_sales_lazy`) backed by **ibis + DuckDB** over the processed **parquet** dataset. 
+3. Applies year, country, and product filtering at the database/query layer **before** materializing results into memory.  
+4. Executes the filtered query and returns only the matching rows as a pandas DataFrame for downstream plots, tables, and KPI calculations.
+
+- **Why this changed in M4:**
+
+To improve scalability and align with production-style data workflows, M4 switches the dashboard from eager CSV loading in pandas to lazy loading with parquet + DuckDB. This keeps filtering outside pandas until the final query result is needed.
 
 - **Consumed by outputs / downstream calcs:**
 
 1. **Direct outputs:** `out_sales_trend_plot`, `out_country_map`, `out_country_contrib_table`
 2. **Additional output:** `out_app_footer`
-3. **Downstream calcs:** `g`, `yoy_by_country`, `top5_products_data`
+3. **Downstream calcs:** `kpi_metrics`, `yoy_by_country`, `top5_products_data`
+
+### `filter_sales_lazy` (data access helper)
+
+- **Depends on:** processed parquet dataset, selected filter values
+
+- **What it does (transformation):**
+
+1. Creates a lazy ibis table over the parquet dataset using DuckDB.
+2. Applies selected filters for year range, country, and product as query operations.
+3. Executes the filtered query only after all filtering conditions are defined.
+4. Returns a pandas DataFrame containing only matching rows.
+
+- **Why it matters:**
+
+This helper is the core of the M4 backend redesign. It ensures filtering happens before the data enters a DataFrame, satisfying the milestone requirement for database-level filtering.
+
+- **Consumed by:**
+
+1. `filtered_sales`
+2. All downstream dashboard plots, tables, and KPI calculations that depend on `filtered_sales`
 
 ### `kpi_metrics` (@reactive.calc)
 

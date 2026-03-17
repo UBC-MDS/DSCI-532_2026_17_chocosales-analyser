@@ -35,7 +35,7 @@ def format_delta_detail(
     if delta > 0:
         return (
             f"vs {prev_year} ▲ {delta * 100:.1f}%",
-            f"{base_class} text-success",
+            f"{base_class} text-warning",
         )
 
     # Negative change: down arrow + red text.
@@ -74,7 +74,7 @@ def format_delta_detail_with_value(
     if delta > 0:
         return (
             f"{display_current_year} vs {prev_year} (▲ {pct_text})",
-            f"{base_class} text-success",
+            f"{base_class} text-warning",
         )
 
     if delta < 0:
@@ -125,7 +125,7 @@ def format_yoy_tile(
 
     # Main YoY number color mirrors the trend direction.
     if yoy_value > 0:
-        main_text_class = "text-success"
+        main_text_class = "text-warning"
     elif yoy_value < 0:
         main_text_class = "text-danger"
     else:

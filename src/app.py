@@ -15,10 +15,12 @@
 
 from datetime import date
 from pathlib import Path
+import io
 import sys
 import altair as alt         # all charts are built with Altair
 import pandas as pd
 from shiny import reactive
+from shiny import ui as core_ui
 from shiny.express import input, render, ui   # Express mode - no explicit App() needed
 from shinywidgets import render_altair        # lets us drop Altair charts into Shiny outputs
 from querychat.express import QueryChat
@@ -31,7 +33,8 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 # our own helpers - filter_sales does the row filtering, kpi_helpers formats the tile text
-from utils.filter_sales import filter_sales
+from utils.lazy_data import get_filter_choices, filter_sales_lazy, get_full_sales_df
+from utils.querychat_guard import enforce_select_and_limit
 from utils.kpi_helpers import (
     format_delta_detail_with_value,
     format_yoy_tile,
@@ -40,16 +43,15 @@ from utils.kpi_helpers import (
 import os
 from dotenv import load_dotenv
 
-# Load the cleaned dataset once when the app starts up.
-# All filtering happens downstream - we never modify this original DataFrame.
-DATA_PATH = (
-    Path(__file__).resolve().parents[1]
-    / "data"
-    / "processed"
-    / "chocolate_sales_clean.csv"
-)
-sales_df = pd.read_csv(DATA_PATH)
-sales_df["year"] = sales_df["year"].astype(int)  # make year an int so filter comparisons work cleanly
+# Load distinct filter choices from parquet via ibis + DuckDB.
+# This only pulls a small metadata table into memory for UI controls.
+choices_df = get_filter_choices()
+
+year_choices = sorted(choices_df["year"].dropna().astype(int).unique().tolist())
+country_choices = sorted(choices_df["country"].dropna().unique().tolist())
+product_choices = sorted(choices_df["product"].dropna().unique().tolist())
+
+YEAR_CHOICES = [str(y) for y in year_choices]
 
 # ---------------------------------------------------------------------------
 # QueryChat (GenAI) setup - separate from the dashboard filters.
@@ -58,8 +60,21 @@ sales_df["year"] = sales_df["year"].astype(int)  # make year an int so filter co
 QC_GREETING_PATH = (
     Path(__file__).resolve().parents[1] / "reports" / "querychat_greeting.md"
 )
+QC_DATA_DESC_PATH = (
+    Path(__file__).resolve().parents[1] / "reports" / "querychat_data_description.md"
+)
+QC_EXTRA_INST_PATH = (
+    Path(__file__).resolve().parents[1] / "reports" / "querychat_extra_instructions.md"
+)
 
-qc_sales_df = sales_df.copy()
+qc_data_description = (
+    QC_DATA_DESC_PATH.read_text(encoding="utf-8") if QC_DATA_DESC_PATH.exists() else None
+)
+qc_extra_instructions = (
+    QC_EXTRA_INST_PATH.read_text(encoding="utf-8") if QC_EXTRA_INST_PATH.exists() else None
+)
+
+qc_sales_df = get_full_sales_df().copy()
 
 # Ensure numeric sales for QueryChat (so SUM/AVG works in SQL)
 if qc_sales_df["sales"].dtype == "object":
@@ -72,22 +87,56 @@ if qc_sales_df["sales"].dtype == "object":
 
 qc_greeting = None
 if QC_GREETING_PATH.exists():
-    qc_greeting = QC_GREETING_PATH.read_text(encoding="utf-8")
+    with io.open(QC_GREETING_PATH, "r", encoding="utf-8") as f:
+        qc_greeting = f.read()
 
-load_dotenv()
+_ = load_dotenv()
 api_key = os.getenv("GITHUB_TOKEN")
 
 qc = None
 qc_available = False
 qc_error_message = None
+qc_tool_status = reactive.value("")
+qc_tool_warning = reactive.value("")
+
+qc_guardrail_settings = {
+    "max_rows": 500,
+    "strict_select": True,
+}
+
+def _on_qc_tool_request(req):
+    args = getattr(req, "arguments", None) or {}
+    if "query" not in args:
+        return
+
+    old_sql = args.get("query") or ""
+
+    max_rows = qc_guardrail_settings["max_rows"]
+    strict_select = qc_guardrail_settings["strict_select"]
+
+    new_sql, warn = enforce_select_and_limit(
+        old_sql,
+        max_rows=max_rows,
+        strict_select=strict_select,
+        table_name="chocolate_sales",
+    )
+
+    req.arguments["query"] = new_sql
+    qc_tool_status.set(f"Applied guardrails: LIMIT {max_rows} | SELECT-only={strict_select}")
+    qc_tool_warning.set(warn)
 
 if api_key:
     try:
+        qc_client = ChatGithub(model="gpt-4.1", api_key=api_key)
+        _ = qc_client.on_tool_request(_on_qc_tool_request)
         qc = QueryChat(
             qc_sales_df,
             "chocolate_sales",
             greeting=qc_greeting,
-            client=ChatGithub(model="gpt-4.1", api_key=api_key),
+            data_description=qc_data_description,
+            extra_instructions=qc_extra_instructions,
+            client=qc_client,
+            
         )
         qc_available = True
     except Exception as e:
@@ -111,12 +160,16 @@ _last_updated = date.today().strftime("%B %d, %Y")
 # filtered_sales is the single source of truth for the whole app.
 # Every chart and KPI reads from here, so changing a sidebar filter
 # automatically flows through to every visible element.
+@reactive.effect
+def _sync_qc_guardrail_settings():
+    qc_guardrail_settings["max_rows"] = int(input.qc_max_rows())
+    qc_guardrail_settings["strict_select"] = bool(input.qc_strict_select())
+    
 @reactive.calc
 def filtered_sales() -> pd.DataFrame:
-    return filter_sales(
-        sales_df=sales_df,
-        start_year=input.start_year(),
-        end_year=input.end_year(),
+    return filter_sales_lazy(
+        start_year=int(input.start_year()),
+        end_year=int(input.end_year()),
         country=input.country(),
         product=input.product(),
     )
@@ -137,6 +190,7 @@ def kpi_metrics() -> dict:
             "avg_sales_per_tran": 0.0,
             "total_transactions": 0,
             "yoy_growth_rate": None,
+            "selected_range_growth_rate": None,
             "revenue_delta_pct": None,
             "avg_sales_delta_pct": None,
             "transactions_delta_pct": None,
@@ -144,6 +198,8 @@ def kpi_metrics() -> dict:
             "prev_avg_sales_per_tran": None,
             "prev_total_transactions": None,
             "prev_year_sales": None,
+            "start_year": int(input.start_year()),
+            "end_year": int(input.end_year()),
             "prev_year": int(input.end_year()) - 1,
         }
 
@@ -158,15 +214,18 @@ def kpi_metrics() -> dict:
     avg_sales_per_tran = float(df["sales"].mean())
     total_transactions = int(df.shape[0])
 
-    # For the KPI tiles we always compare the *end year* against the year
-    # immediately before it, regardless of what start_year is set to.
-    # This keeps the YoY comparison consistent and meaningful.
+    # For the YoY KPI we compare the selected start year against the
+    # selected end year, while the other KPI delta tiles still use the
+    # previous-year comparison against end_year.
+    start_year = int(input.start_year())
     end_year = int(input.end_year())
     prev_year = end_year - 1
 
+    start_year_df = df[df["year"] == start_year]
     current_year_df = df[df["year"] == end_year]
     previous_year_df = df[df["year"] == prev_year]
 
+    start_year_revenue = float(start_year_df["sales"].sum())
     current_revenue = float(current_year_df["sales"].sum())
     previous_revenue = float(previous_year_df["sales"].sum())
 
@@ -184,11 +243,16 @@ def kpi_metrics() -> dict:
     current_transactions = int(current_year_df.shape[0])
     previous_transactions = int(previous_year_df.shape[0])
 
-    sales_by_year = df.groupby("year")["sales"].sum()
-    if previous_revenue != 0:
-        yoy_growth_rate = (current_revenue - previous_revenue) / previous_revenue
+    if start_year == end_year and current_revenue != 0:
+        selected_range_growth_rate = 0.0
+    elif start_year_revenue != 0:
+        selected_range_growth_rate = (
+            current_revenue - start_year_revenue
+        ) / start_year_revenue
     else:
-        yoy_growth_rate = None
+        selected_range_growth_rate = None
+
+    yoy_growth_rate = selected_range_growth_rate
 
     if previous_revenue != 0:
         revenue_delta_pct = (current_revenue - previous_revenue) / previous_revenue
@@ -214,6 +278,7 @@ def kpi_metrics() -> dict:
         "avg_sales_per_tran": avg_sales_per_tran,
         "total_transactions": total_transactions,
         "yoy_growth_rate": yoy_growth_rate,
+        "selected_range_growth_rate": selected_range_growth_rate,
         "revenue_delta_pct": revenue_delta_pct,
         "avg_sales_delta_pct": avg_sales_delta_pct,
         "transactions_delta_pct": transactions_delta_pct,
@@ -221,6 +286,8 @@ def kpi_metrics() -> dict:
         "prev_avg_sales_per_tran": previous_avg_sales,
         "prev_total_transactions": previous_transactions,
         "prev_year_sales": previous_revenue,
+        "start_year": start_year,
+        "end_year": end_year,
         "prev_year": prev_year,
     }
 
@@ -357,13 +424,12 @@ def querychat_filtered_df() -> pd.DataFrame:
 # all four dropdowns back to their default values. Because we use
 # @reactive.event, this function only runs on an explicit button click -
 # it won't fire just because the app loads. Updating the dropdowns
-# automatically triggers filtered_sales() to rerun, so every chart refreshes.
+# automatically triggers filtered_sales_lazy() to rerun, so every chart refreshes.
 @reactive.effect
 @reactive.event(input.reset_filters)
 def reset_filters():
-    year_choices = ["2022", "2023", "2024"]
-    ui.update_select("start_year", selected=year_choices[0])  # back to the earliest year
-    ui.update_select("end_year", selected=year_choices[-1])   # back to the latest year
+    ui.update_select("start_year", selected=YEAR_CHOICES[0])  # back to the earliest year
+    ui.update_select("end_year", selected=YEAR_CHOICES[-1])   # back to the latest year
     ui.update_select("country", selected="All")               # show all countries
     ui.update_select("product", selected="All")               # show all products
 
@@ -377,55 +443,56 @@ def reset_filters():
 ui.page_opts(title="ChocoSales Analyser")
 
 # Sidebar is open by default on desktop and collapses on mobile.
-# Every dropdown here feeds directly into filtered_sales().
+# Every dropdown here feeds directly into filtered_sales_lazy().
 with ui.sidebar(title="Filters", open="desktop"):
-    with ui.layout_columns(col_widths=[5, 5]):
+    with ui.panel_conditional("input.main_tab == 'dashboard'"):
+        with ui.layout_columns(col_widths=[5, 5]):
+            ui.input_select(
+                "start_year",
+                "Start Year",
+                choices=YEAR_CHOICES,
+                selected=YEAR_CHOICES[0]
+            )
+            ui.input_select(
+                "end_year",
+                "End Year",
+                choices=YEAR_CHOICES,
+                selected=YEAR_CHOICES[-1]
+            )
         ui.input_select(
-            "start_year",
-            "Start Year",
-            choices=["2022", "2023", "2024"],
-            selected="2022"
+            "country",
+            "Country",
+            choices=["All"] + country_choices,
+            selected="All"
         )
         ui.input_select(
-            "end_year",
-            "End Year",
-            choices=["2022", "2023", "2024"],
-            selected="2024"
+            "product",
+            "Product Category",
+            choices=["All"] + product_choices,
+            selected="All"
         )
-    ui.input_select(
-        "country",
-        "Country",
-        choices=["All"] + sorted(sales_df["country"].dropna().unique().tolist()),
-        selected="All"
-    )
-    ui.input_select(
-        "product",
-        "Product Category",
-        choices=["All"] + sorted(sales_df["product"].dropna().unique().tolist()),
-        selected="All"
-    )
-    ui.input_action_button(
-        "reset_filters",
-        "Reset Filters",
-        # outline style keeps it unobtrusive; w-100 stretches it to the sidebar width
-        class_="btn btn-outline-secondary btn-sm w-100 mt-2",
-    )
+        ui.input_action_button(
+            "reset_filters",
+            "Reset Filters",
+            class_="btn btn-outline-secondary btn-sm w-100 mt-2",
+        )
 
-    # out_active_filter_state - shows a live plain-text summary of whichever
-    # filters are currently active so the user always knows what they're looking at.
-    @render.text
-    def out_active_filter_state():
-        parts = []
-        start = input.start_year()
-        end = input.end_year()
-        parts.append(f"Years: {start}–{end}")
-        country = input.country()
-        if country != "All":
-            parts.append(f"Country: {country}")
-        product = input.product()
-        if product != "All":
-            parts.append(f"Product: {product}")
-        return " | ".join(parts)
+        @render.text
+        def out_active_filter_state():
+            parts = []
+            start = input.start_year()
+            end = input.end_year()
+            parts.append(f"Years: {start}–{end}")
+            country = input.country()
+            if country != "All":
+                parts.append(f"Country: {country}")
+            product = input.product()
+            if product != "All":
+                parts.append(f"Product: {product}")
+            return " | ".join(parts)
+
+    with ui.panel_conditional("input.main_tab != 'dashboard'"):
+        ui.markdown("**Note:** Filters apply only on the Dashboard tab.")
 
 # ---------------------------------------------------------------------------
 # Tabs
@@ -453,41 +520,62 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             @render.ui
             def out_total_revenue():
                 metrics = kpi_metrics()
-                detail, detail_class = format_delta_detail_with_value(
-                    metrics["revenue_delta_pct"],
-                    metrics["prev_year"],
-                    metrics["prev_revenue"],
-                    "$",
-                )
                 return ui.value_box(
                     title=ui.tags.div(
                         "Total Sales Revenue (USD)",
                         class_="fw-bold fs-5 text-white text-center mb-0",
                     ),
-                    value=ui.TagList(
-                        ui.tags.div(
-                            f"${metrics['total_revenue']:,.1f}",
-                            class_="fs-3 fw-bold lh-1 text-white text-center",
-                        ),
-                        ui.tags.div(
-                            detail,
-                            class_=f"{detail_class} opacity-75",
-                            style="font-size: 0.95rem;",
-                        ),
+                    value=ui.tags.div(
+                        f"${metrics['total_revenue']:,.1f}",
+                        class_="fs-3 fw-bold lh-1 text-white text-center",
                     ),
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
                 )
 
-            # Percentage change in revenue from end_year-1 to end_year
+            # Percentage change in revenue from selected start_year to end_year
             @render.ui
             def out_yoy_growth_rate():
                 metrics = kpi_metrics()
-                main_text, detail, detail_class, main_class = format_yoy_tile(
-                    metrics["yoy_growth_rate"],
-                    metrics["prev_year"],
-                    metrics["prev_year_sales"],
-                )
+                yoy_value = metrics["yoy_growth_rate"]
+                range_growth = metrics["selected_range_growth_rate"]
+
+                if yoy_value is None:
+                    main_text = "N/A"
+                    main_class = "text-white-50"
+                elif yoy_value > 0:
+                    main_text = f"{yoy_value * 100:,.1f}%"
+                    main_class = "text-warning"
+                elif yoy_value < 0:
+                    main_text = f"{yoy_value * 100:,.1f}%"
+                    main_class = "text-danger"
+                else:
+                    main_text = f"{yoy_value * 100:,.1f}%"
+                    main_class = "text-white-50"
+
+                if range_growth is None:
+                    detail_text = (
+                        f"{metrics['start_year']} vs {metrics['end_year']} (N/A)"
+                    )
+                    detail_class = "small mt-1 text-center d-block text-nowrap text-white-50"
+                elif range_growth > 0:
+                    detail_text = (
+                        f"{metrics['start_year']} vs {metrics['end_year']} "
+                        f"(▲ {range_growth * 100:.1f}%)"
+                    )
+                    detail_class = "small mt-1 text-center d-block text-nowrap text-warning"
+                elif range_growth < 0:
+                    detail_text = (
+                        f"{metrics['start_year']} vs {metrics['end_year']} "
+                        f"(▼ {abs(range_growth) * 100:.1f}%)"
+                    )
+                    detail_class = "small mt-1 text-center d-block text-nowrap text-danger"
+                else:
+                    detail_text = (
+                        f"{metrics['start_year']} vs {metrics['end_year']} (0%)"
+                    )
+                    detail_class = "small mt-1 text-center d-block text-nowrap text-white-50"
+
                 return ui.value_box(
                     title=ui.tags.div(
                         "Year Over Year Growth Rate (%)",
@@ -499,7 +587,7 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                             class_=f"fs-3 fw-bold lh-1 {main_class} text-center",
                         ),
                         ui.tags.div(
-                            detail,
+                            detail_text,
                             class_=f"{detail_class} opacity-75",
                             style="font-size: 0.95rem;",
                         ),
@@ -512,27 +600,14 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             @render.ui
             def out_avg_sales_per_tran():
                 metrics = kpi_metrics()
-                detail, detail_class = format_delta_detail_with_value(
-                    metrics["avg_sales_delta_pct"],
-                    metrics["prev_year"],
-                    metrics["prev_avg_sales_per_tran"],
-                    "$",
-                )
                 return ui.value_box(
                     title=ui.tags.div(
                         "Average Sales Per Transaction (USD)",
                         class_="fw-bold fs-5 text-white text-center mb-0",
                     ),
-                    value=ui.TagList(
-                        ui.tags.div(
-                            f"${metrics['avg_sales_per_tran']:,.1f}",
-                            class_="fs-3 fw-bold lh-1 text-white text-center",
-                        ),
-                        ui.tags.div(
-                            detail,
-                            class_=f"{detail_class} opacity-75",
-                            style="font-size: 0.95rem;",
-                        ),
+                    value=ui.tags.div(
+                        f"${metrics['avg_sales_per_tran']:,.1f}",
+                        class_="fs-3 fw-bold lh-1 text-white text-center",
                     ),
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
@@ -542,26 +617,14 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             @render.ui
             def out_total_transactions():
                 metrics = kpi_metrics()
-                detail, detail_class = format_delta_detail_with_value(
-                    metrics["transactions_delta_pct"],
-                    metrics["prev_year"],
-                    metrics["prev_total_transactions"],
-                )
                 return ui.value_box(
                     title=ui.tags.div(
                         "Total Transaction (Count)",
                         class_="fw-bold fs-5 text-white text-center mb-0",
                     ),
-                    value=ui.TagList(
-                        ui.tags.div(
-                            f"{metrics['total_transactions']:,}",
-                            class_="fs-3 fw-bold lh-1 text-white text-center",
-                        ),
-                        ui.tags.div(
-                            detail,
-                            class_=f"{detail_class} opacity-75",
-                            style="font-size: 0.95rem;",
-                        ),
+                    value=ui.tags.div(
+                        f"{metrics['total_transactions']:,}",
+                        class_="fs-3 fw-bold lh-1 text-white text-center",
                     ),
                     style="background-color: #003c64; border-color: #003c64;",
                     class_="h-100",
@@ -809,11 +872,6 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
                         .configure_view(strokeOpacity=0)
                     )
 
-        with ui.layout_columns(col_widths=[6, 6]):
-
-            with ui.card():
-                ui.card_header("Countries Sales Contribution")
-
         # ---------------------------------------------------------------------------
         # Row 2 - summary table on the left, top-5 products chart on the right.
         # ---------------------------------------------------------------------------
@@ -992,21 +1050,51 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
 
     with ui.nav_panel("AI Query", value="ai"):
         ui.h4("AI Query (GenAI)")
+        
+        with ui.card(class_="shadow-sm border-0 mb-2"):
+            ui.card_header("AI settings")
+            
+            with ui.layout_columns(col_widths=[6, 6]):
+                ui.input_slider(
+                    "qc_max_rows",
+                    "Max rows returned",
+                    min=100,
+                    max=5000,
+                    value=500,
+                    step=100,
+                )
+                ui.input_checkbox(
+                    "qc_strict_select",
+                    "SELECT-only (block update/delete)",
+                    value=True,
+                )
+            ui.tags.div(
+                "These settings apply to AI queries in this tab.",
+                class_="text-muted small",
+            )  
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Ask questions in natural language (QueryChat)")
-            if qc_available and qc is not None:
-                qc.ui()
-            else:
-                ui.markdown(
-                    f"""
-                **AI Query is currently unavailable.**
-
-                {qc_error_message}
-
-                The rest of the dashboard is still available.
+            
+            with ui.tags.div(
+                style="""
+                    height: 520px;
+                    overflow-y: auto;
+                    padding-right: 0.25rem;
                 """
-            )
+            ):
+                if qc_available and qc is not None:
+                    qc.ui()
+                else:
+                    ui.markdown(
+                        f"""
+                    **AI Query is currently unavailable.**
+
+                    {qc_error_message}
+
+                    The rest of the dashboard is still available.
+                    """
+                    )
 
         with ui.card(full_screen=True, class_="shadow-sm border-0"):
             ui.card_header("Query Results (filtered table)")
@@ -1017,20 +1105,11 @@ with ui.navset_pill(id="main_tab", selected="dashboard"):
             )
             def download_querychat_data():
                 df = querychat_filtered_df()
-                if df is None:
-                    df = pd.DataFrame()
-                if hasattr(df, "to_pandas"):
-                    df = df.to_pandas()
                 yield df.to_csv(index=False)
 
             @render.data_frame
             def out_querychat_table():
                 df = querychat_filtered_df()
-                if df is None:
-                    df = pd.DataFrame()
-                # Some backends return non-pandas frames; convert if needed
-                if hasattr(df, "to_pandas"):
-                    df = df.to_pandas()
                 return render.DataGrid(df, summary=False)
 
         with ui.card(class_="shadow-sm border-0"):

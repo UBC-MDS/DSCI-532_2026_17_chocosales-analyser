@@ -38,9 +38,11 @@ git clone https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser.git
 cd DSCI-532_2026_17_chocosales-analyser/
 ```
 
-### Create `.env` File and Add your Github token
+### (Optional) Create `.env` File and Add your Github token
 
-Create a `.env` file in the project root directory and add your GitHub token in that file, do not push it:
+The core dashboard can work without a GitHub token.  
+However, providing a token helps avoid GitHub API rate limits and enables full functionality for the AI Query feature.
+Create a `.env` file in the project root directory and add your GitHub token in that file, and do not commit the `.env` file to the repo:
 
 ```bash
 GITHUB_TOKEN="your_github_token_here"
@@ -82,6 +84,14 @@ shiny run --reload src/app.py
 ```
 
 After running this command, open your browser and nagivate to: http://127.0.0.1:8000
+
+### Run Tests
+
+To run all the project tests (unit tests + playwright UI tests), please run the following command in the project root directory:
+
+```bash
+pytest
+```
 
 ## Contributing
 
