@@ -93,16 +93,6 @@ To run all the project tests (unit tests + playwright UI tests), please run the 
 pytest
 ```
 
-**Note:**
-
-If this is your first time running Playwright tests, you may need to install browser dependencies first:
-
-```bash
-playwright install
-```
-
-This step only needs to be done once.
-
 ## Contributing
 
 We welcome contributions, please take a look at our [Contributing Guideline](https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser/blob/readme-eda/CONTRIBUTING.md) for further details on how to contribute to this project, and also review our [Code of Conduct](https://github.com/UBC-MDS/DSCI-532_2026_17_chocosales-analyser/blob/readme-eda/CODE_OF_CONDUCT.md).
