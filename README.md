@@ -87,11 +87,21 @@ After running this command, open your browser and nagivate to: http://127.0.0.1:
 
 ### Run Tests
 
-To run the project tests, please run the following command in the project root directory:
+To run all the project tests (unit tests + playwright UI tests), please run the following command in the project root directory:
 
 ```bash
 pytest
 ```
+
+**Note:**
+
+If this is your first time running Playwright tests, you may need to install browser dependencies first:
+
+```bash
+playwright install
+```
+
+This step only needs to be done once.
 
 ## Contributing
 
