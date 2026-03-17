@@ -41,8 +41,6 @@ For Milestone 4, we updated the dashboard data backend from eager CSV loading in
 
 ## 2.1 Updated Job Stories
 
-> Status values may be adjusted after we finalize M2 MVP vs M3 stretch scope.
-
 | # | Job Story | Status | Notes |
 |---|----------|--------|------|
 | 1 | When I’m reviewing sales performance across countries over time, I want to filter by year range and country and see sales trends/YoY growth, so I can spot which markets are growing faster/slower and decide where to focus. | ✅ Implemented | From M1 JTBD 1 |
