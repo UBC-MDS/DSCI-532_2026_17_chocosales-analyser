@@ -20,3 +20,5 @@ dependencies:
   - chatlas
   - ibis-framework[duckdb]
   - python-dotenv
+  - pytest
+  - pytest-playwright
