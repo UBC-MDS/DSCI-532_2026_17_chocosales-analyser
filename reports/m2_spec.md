@@ -12,11 +12,28 @@
 - **Add user-facing AI settings controls**  
   Add two controls in the AI tab: **Max rows returned** and **SELECT-only**. These controls let users limit the size of AI-generated query results and restrict QueryChat to read-only SQL behavior.
 
-- **Use `on_tool_request` **  
+- **Use `on_tool_request`**  
     Intercept QueryChat tool calls to validate and adjust SQL before execution. In this milestone, we use it to enforce read-only behavior when SELECT-only is enabled and to apply a maximum row limit based on the AI settings controls.
 
 - **Write an experiments notebook**  
-  Create `notebooks/m4_querychat_experiments.ipynb` and compare a few example questions before vs after these changes. Summarize what improved.
+  Create `notebooks/querychat_experiments.ipynb` to document representative prompts, observed behavior, and the motivation for the final QueryChat customization choices.
+
+### M4 Option A - Current implementation results
+
+We implemented QueryChat customization through three main changes:
+
+- **Dataset context:** QueryChat uses `reports/querychat_data_description.md` and `reports/querychat_extra_instructions.md` so responses stay aligned with the chocolate sales dataset and dashboard goals.
+- **User-facing controls:** the AI tab includes **Max rows returned** and **SELECT-only** so users can directly influence QueryChat behavior.
+- **Tool interception and safety:** QueryChat uses `on_tool_request` guardrails to enforce safer query behavior and row limits.
+
+### Observed behavior from experimentation
+
+In our experiments:
+- summary prompts such as `What is the total sales revenue?` returned relevant dataset-aware answers
+- row-returning prompts such as `Show the first 20 rows where boxes shipped are above 100` used the Query Data path and returned limited results
+- destructive prompts such as `Delete all rows` were safely refused with **SELECT-only** enabled
+
+These results supported our choice of Option A because they improved relevance, safety, and usability in the existing AI Query tab.
 
 ## M4 Backend Update Summary
 
@@ -61,6 +78,13 @@ For Milestone 4, we updated the dashboard data backend from eager CSV loading in
 | get_filter_choices | Data access helper | ibis + DuckDB query | processed parquet | #1, #2 |
 | filter_sales_lazy | Data access helper | ibis + DuckDB query + `.execute()` | `start_year, end_year, country, product` | #1, #2, #3 |
 | get_full_sales_df | Data access helper | ibis + DuckDB query + `.execute()` | processed parquet | AI tab support |
+| input_qc_max_rows | Input | ui.input_slider() | _ | M4 Option A |
+| input_qc_strict_select | Input | ui.input_checkbox() | _ | M4 Option A |
+| querychat_filtered_df | Reactive calc | @reactive.calc | QueryChat result | M4 Option A |
+| qc_tool_request_guard | Tool interception / helper | on_tool_request | input_qc_max_rows, input_qc_strict_select | M4 Option A |
+| out_querychat_table | Output | @render.data_frame | querychat_filtered_df | M4 Option A |
+| out_querychat_country_plot | Output | @render.altair | querychat_filtered_df | M4 Option A |
+| out_querychat_top_products_plot | Output | @render.altair | querychat_filtered_df | M4 Option A |
 
 ## 2.3 Reactivity Diagram
 
