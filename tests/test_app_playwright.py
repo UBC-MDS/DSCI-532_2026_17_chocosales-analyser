@@ -61,3 +61,12 @@ def _set_filters(
             product=product,
         )
     )
+def _extract_total_revenue(page: Page) -> float:
+    text = page.locator("body").inner_text()
+    match = re.search(
+        r"Total Sales Revenue\s*\(USD\)\s*\$([0-9,]+(?:\.[0-9]+)?)",
+        text,
+        re.S,
+    )
+    assert match is not None, "Could not parse Total Sales Revenue KPI."
+    return float(match.group(1).replace(",", ""))
