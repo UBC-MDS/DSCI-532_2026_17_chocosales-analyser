@@ -166,3 +166,38 @@ def test_country_product_year_slice_matches_expected_kpis(
     assert _extract_total_transactions(page) == expected_transactions
     assert _extract_yoy_main_text(page) == "0.0%"
     expect(page.get_by_text(f"{year} vs {year} (0%)")).to_be_visible()
+    
+# UI Interaction / State Recovery behaviour tests verify that UI controls correctly reset to defaults, 
+# which is important for user experience and trust in the interface.
+def test_reset_button_restores_default_filters(
+    page: Page,
+    app: ShinyAppProc,
+    sales_df: pd.DataFrame,
+) -> None:
+    """Verify Reset Filters restores defaults.
+
+    This matters because users need a reliable baseline.
+    """
+    _open_dashboard(page, app)
+
+    default_start = int(sales_df["year"].min())
+    default_end = int(sales_df["year"].max())
+
+    _set_filters(
+        page,
+        start_year=default_start,
+        end_year=default_start,
+        country="Australia",
+        product="After Nines",
+    )
+
+    page.locator("button#reset_filters").click()
+
+    controller.OutputText(page, "out_active_filter_state").expect_value(
+        _expected_filter_state(start_year=default_start, end_year=default_end)
+    )
+    expect(page.locator("select#start_year")).to_have_value(str(default_start))
+    expect(page.locator("select#end_year")).to_have_value(str(default_end))
+    expect(page.locator("select#country")).to_have_value("All")
+    expect(page.locator("select#product")).to_have_value("All")
+
