@@ -2,6 +2,89 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-03-17
+
+### Added
+- Added QueryChat dataset-context files and extra instructions so AI responses better match the chocolate sales schema and dashboard goals via #69 and #86.
+- Added QueryChat SQL guardrails using `on_tool_request` plus `enforce_select_and_limit()` to support safer read-only querying and automatic row limiting via #80.
+- Added user-facing AI controls for `Max rows returned` and `SELECT-only` in the AI Query tab via #85.
+- Added lazy parquet + DuckDB/ibis data-access helpers (`get_filter_choices`, `filter_sales_lazy`, `get_full_sales_df`) to support dashboard filtering and AI access without eager CSV loading via #62.
+- Set up test structure and added testing dependencies.
+- Added a QueryChat experiments notebook documenting representative prompts, observed behavior, and final customization choices via #82.
+- Added `ibis-framework[duckdb]` to `environment.yml` and `requirements.txt`.
+- Implemented `convert_to_parquet.py`:
+  - converts the processed dataset to Parquet format in `data/processed/`.
+- Created `lazy_data.py` to support lazy data loading:
+  - `get_duckdb_connection()` for DuckDB connection via ibis
+  - `get_sales_table()` for accessing the parquet dataset
+  - `filter_sales_lazy()` for efficient filtering using lazy evaluation.
+- Added Playwright end-to-end coverage for aggregation correctness, year-boundary behavior, edge-case filters, and reset-filter recovery via PR #88.
+- Ensured tests run successfully using `pytest`.
+- Added one-sentence descriptions per test to clarify:
+  - what behavior is being verified.
+  - why it matters for dashboard functionality.  
+
+### Changed
+
+- Migrated the dashboard backend from eager CSV loading in pandas to lazy parquet + DuckDB/ibis execution to improve scalability while preserving the user-facing dashboard workflow via #62.
+- Updated filter-choice initialization to come from distinct parquet metadata queries instead of preloading the full analytical dataset via PR #62.
+- Updated `app.py`:
+  - adjusted imports and reactive calculations to integrate lazy loading.
+- Updated corresponding specification document (`m2_spec.md`) to reflect these changes.
+- Added unit tests for `filter_sales()` in `tests/test_filter_sales.py`.
+- Refined KPI comparison text and card readability so year-over-year context is more targeted and less visually dense via PR #84 and #86.
+- Addressed: QueryChat responses needed stronger dataset grounding and safer query behavior via PR #69, #80, and #85.
+- Addressed: dashboard behavior needed stronger regression coverage for interactive filtering and KPI updates via #88.
+- Updated README with:
+  - instructions for running tests locally
+  - optional GitHub token setup instructions for QueryChat and corrected test run commands via PR #87.
+- Improved usability by making setup steps clearer for new users.
+
+### Fixed
+
+- Fixed QueryChat tool interception and status handling so guardrail settings are applied consistently before execution via PR #80.
+- Fixed import/path issues to ensure tests run correctly from project root.
+- Fixed QueryChat download and table rendering issues so AI-generated results are displayed and exported through the shared `querychat_filtered_df()` path.
+- Fixed duplicate or incorrect QueryChat keyword-argument wiring during context setup.
+- Removed unintended `True/False` text above Dashboard tab
+- Removed redundant "Countries Sales Contribution" card
+- Fixed KPI comparison-text issues and YoY display inconsistencies identified during M4 polish via #84.
+- Improved UI readability:
+  - increased contrast for text on dark blue card
+- Updated dashboard layout:
+  - moved chatbot to sidebar with fixed height (UX improvement)
+
+- **Feedback prioritization issue link:** feedback issues #57, #58, #71, #74 and #83
+
+### Known Issues
+
+- The country choropleth map remains small within the dashboard layout; users can use the map's expand/fullscreen option as a workaround. Fully resizing it would require restructuring the grid layout.
+- Year filters still use two separate dropdowns rather than a double-ended range slider; this is a low-priority UX improvement that would require refactoring input components and reactive filter logic.
+- The AI Query feature still requires a valid `GITHUB_TOKEN`; without it, the core dashboard works but AI functionality is unavailable by design.
+- QueryChat depends on model-generated SQL, so ambiguous prompts may still require rephrasing for the best result.
+
+### Release Highlight: QueryChat Guardrails and Context-Aware AI Query
+
+This release extends the AI Query tab through QueryChat customization: we added dataset-aware prompt context, used `on_tool_request` to intercept and guard SQL tool calls, and introduced user-facing controls for `Max rows returned` and `SELECT-only`. Together, these changes make natural-language querying more relevant to the chocolate sales dataset, safer to use, and easier for users to control. In parallel, the dashboard backend now uses lazy parquet + DuckDB/ibis execution, which improves the scalability of both standard dashboard filtering and AI-assisted analysis.
+
+- **Option chosen:** A
+- **PR:** #69, #80, #85, #86
+- **Why this option over the others:** We already have QueryChat in the dashboard, so Option A builds on an existing feature with lower integration risk than adding external logging or complex RAG. We chose Option A over B, C, and D because it builds directly on our existing AI Query tab with lower integration risk and clearer user benefit for this milestone. It also fits the lecture focus on prompt context and tool interception.
+- **Feature prioritization issue link:** issues #63
+
+### Collaboration
+
+- **CONTRIBUTING.md:** existing project workflow retained in `CONTRIBUTING.md`; M4 collaboration updates are summarized below
+- **M3 retrospective:** After M3, we shifted toward smaller feature branches, more focused PRs, and earlier review cycles so UI, backend, and AI-query changes could be integrated with less merge friction.
+- **M4:** This milestone, we split the work across dedicated PRs for QueryChat context, SQL guardrails, AI controls, experiments, backend migration, and testing, which made reviews easier.
+
+### Reflection
+
+In v0.4.0, the dashboard is stronger in two places that matter most to users: the core filtering workflow is more robust, and the AI Query tab is more useful and safer to use. Moving the backend toward lazy parquet + DuckDB/ibis queries improved the reliability of the data pipeline, while the QueryChat context files, guardrails, and user controls made the AI feature feel more grounded in the actual dataset. At the same time, there are still some limitations. The AI workflow depends on `GITHUB_TOKEN` and model-generated SQL, so it is naturally less predictable than the main dashboard. We also know some UI polish items are still not ideal, especially around layout and chart sizing.
+
+Our prioritization was based on feedback from Justin (#71), Molly (#57), Harrison (#58), and the instructor, Ilya (#83). We treated broken behavior, incorrect outputs, and anything that blocked users from interacting with the dashboard as critical, so we focused first on fixes like reactive KPI comparisons, preventing invalid year selections, removing confusing stray text, stabilizing the chatbot layout, and reducing mismatches between dashboard filters and the AI tab. We made a deliberate trade-off by leaving lower-priority redesign ideas, like replacing the year dropdowns with a double-ended slider or fully restructuring the layout around a larger map, for later because those changes would have required broader refactoring for a smaller immediate benefit.
+
+Testing was one of the most useful parts of this milestone. The `filter_sales()` unit tests help protect the dashboard's core filtering logic by checking year handling, reversed inputs, country/product filtering, and missing-column failures, while the Playwright tests focus on user-facing behaviors such as aggregation correctness, the start-year-equals-end-year boundary case, narrow filter slices, and reset-filter recovery. Together, they gave us better confidence that both the internal logic and the visible dashboard behavior would hold up as the app evolved. The most useful guidance this milestone came from course feedback on reactivity, shared data pipelines, and testing, because it directly shaped both the lazy-loading redesign and the way we chose what to test.
 
 ## [0.3.0] - 2026-03-08
 
@@ -29,7 +112,7 @@ All notable changes to this project will be documented in this file.
 - Updated the country map so countries with no matching sales data are no longer forced to zero values.
 - Fixed the percentage for the KPI card details YoY statistics card.
 - Fixed minor typos across UI text and code comments.
-- Fix token and coding save error to make the local path align well with the cloud, and both run successfully.
+- Fixed token and coding save error to make the local path align well with the cloud, and both run successfully.
 
 ### Known Issues
 - No known issues at the time of release.
