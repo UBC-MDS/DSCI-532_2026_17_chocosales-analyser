@@ -111,3 +111,19 @@ def test_total_revenue_matches_filtered_aggregation(
     observed = _extract_total_revenue(page)
 
     assert observed == pytest.approx(expected, abs=0.1)
+    
+# Boundary Condition behaviour tests verify that edge cases yield correct outputs, which is critical for robustness and user confidence.
+def test_yoy_boundary_same_start_and_end_year_is_zero(
+    page: Page, app: ShinyAppProc, sales_df: pd.DataFrame
+) -> None:
+    """Verify start_year == end_year yields 0% YoY.
+
+    This matters because equal periods imply no change.
+    """
+    _open_dashboard(page, app)
+
+    year = int(sales_df["year"].min())
+    _set_filters(page, start_year=year, end_year=year)
+
+    assert _extract_yoy_main_text(page) == "0.0%"
+    expect(page.get_by_text(f"{year} vs {year} (0%)")).to_be_visible()
