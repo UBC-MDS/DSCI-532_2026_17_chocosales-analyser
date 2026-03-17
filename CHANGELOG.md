@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - Added user-facing AI controls for `Max rows returned` and `SELECT-only` in the AI Query tab via #85.
 - Added lazy parquet + DuckDB/ibis data-access helpers (`get_filter_choices`, `filter_sales_lazy`, `get_full_sales_df`) to support dashboard filtering and AI access without eager CSV loading via #62.
 - Set up test structure and added testing dependencies.
-- Added a QueryChat experiments notebook documenting representative prompts, observed behaviour, and final customization choices via #82.
+- Added a QueryChat experiments notebook documenting representative prompts, observed behavior, and final customization choices via #82.
 - Added `ibis-framework[duckdb]` to `environment.yml` and `requirements.txt`.
 - Implemented `convert_to_parquet.py`:
   - converts the processed dataset to Parquet format in `data/processed/`.
@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
 - Added Playwright end-to-end coverage for aggregation correctness, year-boundary behavior, edge-case filters, and reset-filter recovery via PR #88.
 - Ensured tests run successfully using `pytest`.
 - Added one-sentence descriptions per test to clarify:
-  - what behaviour is being verified.
+  - what behavior is being verified.
   - why it matters for dashboard functionality.  
 
 ### Changed
@@ -77,6 +77,14 @@ This release extends the AI Query tab through QueryChat customization: we added 
 - **CONTRIBUTING.md:** existing project workflow retained in `CONTRIBUTING.md`; M4 collaboration updates are summarized below
 - **M3 retrospective:** After M3, we shifted toward smaller feature branches, more focused PRs, and earlier review cycles so UI, backend, and AI-query changes could be integrated with less merge friction.
 - **M4:** This milestone, we split the work across dedicated PRs for QueryChat context, SQL guardrails, AI controls, experiments, backend migration, and testing, which made reviews easier.
+
+### Reflection
+
+In v0.4.0, the dashboard is stronger in two places that matter most to users: the core filtering workflow is more robust, and the AI Query tab is more useful and safer to use. Moving the backend toward lazy parquet + DuckDB/ibis queries improved the reliability of the data pipeline, while the QueryChat context files, guardrails, and user controls made the AI feature feel more grounded in the actual dataset. At the same time, there are still some limitations. The AI workflow depends on `GITHUB_TOKEN` and model-generated SQL, so it is naturally less predictable than the main dashboard. We also know some UI polish items are still not ideal, especially around layout and chart sizing.
+
+Our prioritization was based on feedback from Justin (#71), Molly (#57), Harrison (#58), and the instructor, Ilya (#83). We treated broken behavior, incorrect outputs, and anything that blocked users from interacting with the dashboard as critical, so we focused first on fixes like reactive KPI comparisons, preventing invalid year selections, removing confusing stray text, stabilizing the chatbot layout, and reducing mismatches between dashboard filters and the AI tab. We made a deliberate trade-off by leaving lower-priority redesign ideas, like replacing the year dropdowns with a double-ended slider or fully restructuring the layout around a larger map, for later because those changes would have required broader refactoring for a smaller immediate benefit.
+
+Testing was one of the most useful parts of this milestone. The `filter_sales()` unit tests help protect the dashboard's core filtering logic by checking year handling, reversed inputs, country/product filtering, and missing-column failures, while the Playwright tests focus on user-facing behaviors such as aggregation correctness, the start-year-equals-end-year boundary case, narrow filter slices, and reset-filter recovery. Together, they gave us better confidence that both the internal logic and the visible dashboard behavior would hold up as the app evolved. The most useful guidance this milestone came from course feedback on reactivity, shared data pipelines, and testing, because it directly shaped both the lazy-loading redesign and the way we chose what to test.
 
 ## [0.3.0] - 2026-03-08
 
