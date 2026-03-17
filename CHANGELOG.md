@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
   - `get_duckdb_connection()` for DuckDB connection via ibis
   - `get_sales_table()` for accessing the parquet dataset
   - `filter_sales_lazy()` for efficient filtering using lazy evaluation.
-- Added Playwright end-to-end coverage for aggregation correctness, year-boundary behavior, edge-case filters, and reset-filter recovery via #88.
+- Added Playwright end-to-end coverage for aggregation correctness, year-boundary behavior, edge-case filters, and reset-filter recovery via PR #88.
 - Ensured tests run successfully using `pytest`.
 - Added one-sentence descriptions per test to clarify:
   - what behaviour is being verified.
@@ -27,22 +27,22 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Migrated the dashboard backend from eager CSV loading in pandas to lazy parquet + DuckDB/ibis execution to improve scalability while preserving the user-facing dashboard workflow via #62.
-- Updated filter-choice initialization to come from distinct parquet metadata queries instead of preloading the full analytical dataset via #62.
+- Updated filter-choice initialization to come from distinct parquet metadata queries instead of preloading the full analytical dataset via PR #62.
 - Updated `app.py`:
   - adjusted imports and reactive calculations to integrate lazy loading.
 - Updated corresponding specification document (`m2_spec.md`) to reflect these changes.
 - Added unit tests for `filter_sales()` in `tests/test_filter_sales.py`.
-- Refined KPI comparison text and card readability so year-over-year context is more targeted and less visually dense via #84 and #86.
-- Addressed: QueryChat responses needed stronger dataset grounding and safer query behavior via #69, #80, and #85.
+- Refined KPI comparison text and card readability so year-over-year context is more targeted and less visually dense via PR #84 and #86.
+- Addressed: QueryChat responses needed stronger dataset grounding and safer query behavior via PR #69, #80, and #85.
 - Addressed: dashboard behavior needed stronger regression coverage for interactive filtering and KPI updates via #88.
 - Updated README with:
   - instructions for running tests locally
-  - optional GitHub token setup instructions for QueryChat and corrected test run commands via #87.
+  - optional GitHub token setup instructions for QueryChat and corrected test run commands via PR #87.
 - Improved usability by making setup steps clearer for new users.
 
 ### Fixed
 
-- Fixed QueryChat tool interception and status handling so guardrail settings are applied consistently before execution via #80.
+- Fixed QueryChat tool interception and status handling so guardrail settings are applied consistently before execution via PR #80.
 - Fixed import/path issues to ensure tests run correctly from project root.
 - Fixed QueryChat download and table rendering issues so AI-generated results are displayed and exported through the shared `querychat_filtered_df()` path.
 - Fixed duplicate or incorrect QueryChat keyword-argument wiring during context setup.
@@ -62,6 +62,16 @@ All notable changes to this project will be documented in this file.
 - Year filters still use two separate dropdowns rather than a double-ended range slider; this is a low-priority UX improvement that would require refactoring input components and reactive filter logic.
 - The AI Query feature still requires a valid `GITHUB_TOKEN`; without it, the core dashboard works but AI functionality is unavailable by design.
 - QueryChat depends on model-generated SQL, so ambiguous prompts may still require rephrasing for the best result.
+
+### Release Highlight: QueryChat Guardrails and Context-Aware AI Query
+
+This release extends the AI Query tab through QueryChat customization: we added dataset-aware prompt context, used `on_tool_request` to intercept and guard SQL tool calls, and introduced user-facing controls for `Max rows returned` and `SELECT-only`. Together, these changes make natural-language querying more relevant to the chocolate sales dataset, safer to use, and easier for users to control. In parallel, the dashboard backend now uses lazy parquet + DuckDB/ibis execution, which improves the scalability of both standard dashboard filtering and AI-assisted analysis.
+
+- **Option chosen:** A
+- **PR:** #69, #80, #85, #86
+- **Why this option over the others:** We already have QueryChat in the dashboard, so Option A builds on an existing feature with lower integration risk than adding external logging or complex RAG. We chose Option A over B, C, and D because it builds directly on our existing AI Query tab with lower integration risk and clearer user benefit for this milestone. It also fits the lecture focus on prompt context and tool interception.
+- **Feature prioritization issue link:** issues #63
+
 
 
 ## [0.3.0] - 2026-03-08
