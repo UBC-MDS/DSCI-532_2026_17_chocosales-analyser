@@ -64,7 +64,7 @@ For Milestone 4, we updated the dashboard data backend from eager CSV loading in
 
 ## 2.3 Reactivity Diagram
 
-```{mermaid}
+```mermaid
 flowchart TD
   PP[processed_parquet] --> GFC[get_filter_choices]
   PP --> FSL[filter_sales_lazy]
