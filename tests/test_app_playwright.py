@@ -20,3 +20,16 @@ DATA_PATH = (
     / "processed"
     / "chocolate_sales_clean.csv"
 )
+
+@pytest.fixture(scope="module")
+def sales_df() -> pd.DataFrame:
+    """Load cleaned data once for expected-value checks in UI tests."""
+    df = pd.read_csv(DATA_PATH)
+    if df["sales"].dtype == "object":
+        df["sales"] = (
+            df["sales"]
+            .astype(str)
+            .str.replace(r"[\$,]", "", regex=True)
+            .astype(float)
+        )
+    return df
