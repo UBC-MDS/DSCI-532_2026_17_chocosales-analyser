@@ -54,7 +54,14 @@ All notable changes to this project will be documented in this file.
 - Updated dashboard layout:
   - moved chatbot to sidebar with fixed height (UX improvement)
 
+- **Feedback prioritization issue link:** feedback issues #57, #58, #71, #74 and #83
 
+### Known Issues
+
+- The country choropleth map remains small within the dashboard layout; users can use the map's expand/fullscreen option as a workaround. Fully resizing it would require restructuring the grid layout.
+- Year filters still use two separate dropdowns rather than a double-ended range slider; this is a low-priority UX improvement that would require refactoring input components and reactive filter logic.
+- The AI Query feature still requires a valid `GITHUB_TOKEN`; without it, the core dashboard works but AI functionality is unavailable by design.
+- QueryChat depends on model-generated SQL, so ambiguous prompts may still require rephrasing for the best result.
 
 
 ## [0.3.0] - 2026-03-08
