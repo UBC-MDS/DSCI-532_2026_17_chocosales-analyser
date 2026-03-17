@@ -24,6 +24,22 @@ All notable changes to this project will be documented in this file.
   - what behaviour is being verified.
   - why it matters for dashboard functionality.  
 
+### Changed
+
+- Migrated the dashboard backend from eager CSV loading in pandas to lazy parquet + DuckDB/ibis execution to improve scalability while preserving the user-facing dashboard workflow via #62.
+- Updated filter-choice initialization to come from distinct parquet metadata queries instead of preloading the full analytical dataset via #62.
+- Updated `app.py`:
+  - adjusted imports and reactive calculations to integrate lazy loading.
+- Updated corresponding specification document (`m2_spec.md`) to reflect these changes.
+- Added unit tests for `filter_sales()` in `tests/test_filter_sales.py`.
+- Refined KPI comparison text and card readability so year-over-year context is more targeted and less visually dense via #84 and #86.
+- Addressed: QueryChat responses needed stronger dataset grounding and safer query behavior via #69, #80, and #85.
+- Addressed: dashboard behavior needed stronger regression coverage for interactive filtering and KPI updates via #88.
+- Updated README with:
+  - instructions for running tests locally
+  - optional GitHub token setup instructions for QueryChat and corrected test run commands via #87.
+- Improved usability by making setup steps clearer for new users.
+
 
 
 
@@ -53,7 +69,7 @@ All notable changes to this project will be documented in this file.
 - Updated the country map so countries with no matching sales data are no longer forced to zero values.
 - Fixed the percentage for the KPI card details YoY statistics card.
 - Fixed minor typos across UI text and code comments.
-- Fix token and coding save error to make the local path align well with the cloud, and both run successfully.
+- Fixed token and coding save error to make the local path align well with the cloud, and both run successfully.
 
 ### Known Issues
 - No known issues at the time of release.
