@@ -64,42 +64,52 @@ For Milestone 4, we updated the dashboard data backend from eager CSV loading in
 
 ## 2.3 Reactivity Diagram
 
-```mermaid
+```{mermaid}
 flowchart TD
-  %% Inputs
-  SY[/input_start_year/] --> FS{{filtered_sales(calls DuckDB/ibis lazy query)}}
-  EY[/input_end_year/] --> FS
-  C[/input_country/] --> FS
-  P[/input_product/] --> FS
-  SY --> AFS([out_active_filter_state])
+  PP[processed_parquet] --> GFC[get_filter_choices]
+  PP --> FSL[filter_sales_lazy]
+  PP --> GF[get_full_sales_df]
+
+  GFC --> SY[input_start_year]
+  GFC --> EY[input_end_year]
+  GFC --> C[input_country]
+  GFC --> P[input_product]
+
+  R[input_reset_filters] --> RF[reset_filters]
+  RF --> SY
+  RF --> EY
+  RF --> C
+  RF --> P
+
+  SY --> FS[filtered_sales]
+  EY --> FS
+  C --> FS
+  P --> FS
+  FSL --> FS
+
+  SY --> AFS[out_active_filter_state]
   EY --> AFS
   C --> AFS
   P --> AFS
 
-  %% Optional enhancement: reset
-  R[/input_reset_filters/] --> RF[reset_filters]
-  RF --> RFT[[reactive.effect]]
+  FS --> KM[kpi_metrics]
+  FS --> YY[yoy_by_country]
+  FS --> TP[top5_products_data]
 
-  %% Reactive calcs derived from filtered_sales
-  FS --> KM{{kpi_metrics}}
-  FS --> YY{{yoy_by_country}}
-  FS --> TP{{top5_products_data}}
+  FS --> ST[out_sales_trend_plot]
+  FS --> MAP[out_country_map]
+  FS --> TBL[out_country_contrib_table]
+  FS --> FTR[out_app_footer]
 
-  %% Outputs consuming filtered_sales directly
-  FS --> ST([out_sales_trend_plot])
-  FS --> MAP([out_country_map])
-  FS --> TBL([out_country_contrib_table])
-  FS --> FTR([out_app_footer])
+  KM --> TR[out_total_revenue]
+  KM --> AV[out_avg_sales_per_tran]
+  KM --> GR[out_yoy_growth_rate]
+  KM --> TX[out_total_transactions]
 
-  %% KPI value box outputs consuming kpi_metrics
-  KM --> TR([out_total_revenue])
-  KM --> AV([out_avg_sales_per_tran])
-  KM --> GR([out_yoy_growth_rate])
-  KM --> TX([out_total_transactions])
+  YY --> YYPL[out_yoy_country_plot]
+  TP --> TPPL[out_top5_products_plot]
 
-  %% Outputs consuming yoy/top5 calcs
-  YY --> YYPL([out_yoy_country_plot])
-  TP --> TPPL([out_top5_products_plot])
+  GF --> AI[AI_tab_support]
 ```
 
 ## 2.4 Calculation Details
