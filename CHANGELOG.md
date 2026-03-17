@@ -40,6 +40,20 @@ All notable changes to this project will be documented in this file.
   - optional GitHub token setup instructions for QueryChat and corrected test run commands via #87.
 - Improved usability by making setup steps clearer for new users.
 
+### Fixed
+
+- Fixed QueryChat tool interception and status handling so guardrail settings are applied consistently before execution via #80.
+- Fixed import/path issues to ensure tests run correctly from project root.
+- Fixed QueryChat download and table rendering issues so AI-generated results are displayed and exported through the shared `querychat_filtered_df()` path.
+- Fixed duplicate or incorrect QueryChat keyword-argument wiring during context setup.
+- Removed unintended `True/False` text above Dashboard tab
+- Removed redundant "Countries Sales Contribution" card
+- Fixed KPI comparison-text issues and YoY display inconsistencies identified during M4 polish via #84.
+- Improved UI readability:
+  - increased contrast for text on dark blue card
+- Updated dashboard layout:
+  - moved chatbot to sidebar with fixed height (UX improvement)
+
 
 
 
