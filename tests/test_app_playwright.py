@@ -21,6 +21,7 @@ DATA_PATH = (
     / "chocolate_sales_clean.csv"
 )
 
+
 @pytest.fixture(scope="module")
 def sales_df() -> pd.DataFrame:
     """Load cleaned data once for expected-value checks in UI tests."""
@@ -34,12 +35,29 @@ def sales_df() -> pd.DataFrame:
         )
     return df
 
+
 def _open_dashboard(page: Page, app_proc: ShinyAppProc) -> None:
     page.goto(app_proc.url)
     expect(
         page.get_by_text("Chocolate Sales Analyser Dashboard")
     ).to_be_visible()
-    
+
+
+def _expected_filter_state(
+    *,
+    start_year: int,
+    end_year: int,
+    country: str = "All",
+    product: str = "All",
+) -> str:
+    parts = [f"Years: {start_year}–{end_year}"]
+    if country != "All":
+        parts.append(f"Country: {country}")
+    if product != "All":
+        parts.append(f"Product: {product}")
+    return " | ".join(parts)
+
+
 def _set_filters(
     page: Page,
     *,
@@ -61,6 +79,8 @@ def _set_filters(
             product=product,
         )
     )
+
+
 def _extract_total_revenue(page: Page) -> float:
     text = page.locator("body").inner_text()
     match = re.search(
@@ -71,11 +91,13 @@ def _extract_total_revenue(page: Page) -> float:
     assert match is not None, "Could not parse Total Sales Revenue KPI."
     return float(match.group(1).replace(",", ""))
 
+
 def _extract_total_transactions(page: Page) -> int:
     text = page.locator("body").inner_text()
     match = re.search(r"Total Transaction\s*\(Count\)\s*([0-9,]+)", text, re.S)
     assert match is not None, "Could not parse Total Transaction KPI."
     return int(match.group(1).replace(",", ""))
+
 
 def _extract_yoy_main_text(page: Page) -> str:
     text = page.locator("body").inner_text()
@@ -87,7 +109,8 @@ def _extract_yoy_main_text(page: Page) -> str:
     assert match is not None, "Could not parse YoY main KPI text."
     return match.group(1)
 
-#Aggregation Correctness behaviour tests verify that KPIs reflect the filtered dataset, which is critical for user trust.
+
+# Aggregation correctness: KPIs should reflect the filtered dataset.
 def test_total_revenue_matches_filtered_aggregation(
     page: Page, app: ShinyAppProc, sales_df: pd.DataFrame
 ) -> None:
@@ -111,8 +134,9 @@ def test_total_revenue_matches_filtered_aggregation(
     observed = _extract_total_revenue(page)
 
     assert observed == pytest.approx(expected, abs=0.1)
-    
-# Boundary Condition behaviour tests verify that edge cases yield correct outputs, which is critical for robustness and user confidence.
+
+
+# Boundary condition: equal start and end years should yield zero growth.
 def test_yoy_boundary_same_start_and_end_year_is_zero(
     page: Page, app: ShinyAppProc, sales_df: pd.DataFrame
 ) -> None:
@@ -128,7 +152,8 @@ def test_yoy_boundary_same_start_and_end_year_is_zero(
     assert _extract_yoy_main_text(page) == "0.0%"
     expect(page.get_by_text(f"{year} vs {year} (0%)")).to_be_visible()
 
-# Edge-Case Filter behaviour tests verify that narrow filter combinations yield correct KPIs, which is important for filter consistency and user trust.
+
+# Edge-case filter: narrow slices should still produce correct KPIs.
 def test_country_product_year_slice_matches_expected_kpis(
     page: Page, app: ShinyAppProc, sales_df: pd.DataFrame
 ) -> None:
@@ -166,9 +191,9 @@ def test_country_product_year_slice_matches_expected_kpis(
     assert _extract_total_transactions(page) == expected_transactions
     assert _extract_yoy_main_text(page) == "0.0%"
     expect(page.get_by_text(f"{year} vs {year} (0%)")).to_be_visible()
-    
-# UI Interaction / State Recovery behaviour tests verify that UI controls correctly reset to defaults, 
-# which is important for user experience and trust in the interface.
+
+
+# UI interaction/state recovery: Reset Filters should restore defaults.
 def test_reset_button_restores_default_filters(
     page: Page,
     app: ShinyAppProc,
