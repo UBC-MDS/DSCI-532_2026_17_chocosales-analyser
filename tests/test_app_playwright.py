@@ -40,3 +40,24 @@ def _open_dashboard(page: Page, app_proc: ShinyAppProc) -> None:
         page.get_by_text("Chocolate Sales Analyser Dashboard")
     ).to_be_visible()
     
+def _set_filters(
+    page: Page,
+    *,
+    start_year: int,
+    end_year: int,
+    country: str = "All",
+    product: str = "All",
+) -> None:
+    page.locator("select#start_year").select_option(str(start_year))
+    page.locator("select#end_year").select_option(str(end_year))
+    page.locator("select#country").select_option(country)
+    page.locator("select#product").select_option(product)
+
+    controller.OutputText(page, "out_active_filter_state").expect_value(
+        _expected_filter_state(
+            start_year=start_year,
+            end_year=end_year,
+            country=country,
+            product=product,
+        )
+    )
