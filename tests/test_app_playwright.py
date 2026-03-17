@@ -76,3 +76,13 @@ def _extract_total_transactions(page: Page) -> int:
     match = re.search(r"Total Transaction\s*\(Count\)\s*([0-9,]+)", text, re.S)
     assert match is not None, "Could not parse Total Transaction KPI."
     return int(match.group(1).replace(",", ""))
+
+def _extract_yoy_main_text(page: Page) -> str:
+    text = page.locator("body").inner_text()
+    match = re.search(
+        r"Year Over Year\s*Growth Rate\s*\(%\)\s*([0-9]+(?:\.[0-9]+)?%|N/A)",
+        text,
+        re.S,
+    )
+    assert match is not None, "Could not parse YoY main KPI text."
+    return match.group(1)
