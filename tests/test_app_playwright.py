@@ -86,3 +86,28 @@ def _extract_yoy_main_text(page: Page) -> str:
     )
     assert match is not None, "Could not parse YoY main KPI text."
     return match.group(1)
+
+#Aggregation Correctness behaviour tests verify that KPIs reflect the filtered dataset, which is critical for user trust.
+def test_total_revenue_matches_filtered_aggregation(
+    page: Page, app: ShinyAppProc, sales_df: pd.DataFrame
+) -> None:
+    """Verify total revenue equals filtered sums.
+
+    This matters because KPIs must track active filters.
+    """
+    _open_dashboard(page, app)
+
+    start_year = int(sales_df["year"].min())
+    end_year = start_year + 1
+
+    _set_filters(page, start_year=start_year, end_year=end_year)
+
+    expected = float(
+        sales_df[
+            (sales_df["year"] >= start_year)
+            & (sales_df["year"] <= end_year)
+        ]["sales"].sum()
+    )
+    observed = _extract_total_revenue(page)
+
+    assert observed == pytest.approx(expected, abs=0.1)
